@@ -1,16 +1,77 @@
-# React + Vite
+# FRACTOÏA
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Application web éducative pour construire la notion de fraction au **cycle 3** (CM1–6e), avec une attention particulière aux fractions supérieures à l'unité.
 
-Currently, two official plugins are available:
+Conçue selon les principes didactiques de **Brousseau** (fraction comme magnitude, droite numérique) et les travaux d'**André Tricot** sur le numérique éducatif (feedback immédiat, charge cognitive maîtrisée, scénario pédagogique explicite).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## Stack technique
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+| Outil | Version |
+|---|---|
+| Node.js | 20.19.0 |
+| pnpm | 10.33.0 |
+| React | 19 |
+| Vite | 8 |
+| Tailwind CSS | 4 (`@tailwindcss/vite`) |
+| JSDoc | (sans TypeScript) |
 
-## Expanding the ESLint configuration
+## Démarrage
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+pnpm install
+pnpm dev
+```
+
+## Build
+
+```bash
+pnpm build
+pnpm preview
+```
+
+---
+
+## Architecture
+
+```
+src/
+├── components/
+│   ├── ui/          # Composants réutilisables  (≤ 150 lignes)
+│   ├── worlds/      # Composants par monde      (≤ 200 lignes)
+│   └── layout/      # Structure générale
+├── hooks/           # Logique métier             (≤ 80 lignes)
+├── data/            # Défis et contenus narratifs
+└── App.jsx          # Orchestrateur              (≤ 200 lignes)
+```
+
+**Règle absolue :** 1 réponse = 1 fichier complet créé ou mis à jour.
+
+---
+
+## Progression des sprints
+
+| Sprint | Contenu | Statut |
+|---|---|---|
+| 1 | Socle technique · `NumberLine` · hooks de base | ✅ Terminé |
+| 2 | `WorldFarm` (fraction-partage) · `useFractionChallenge` | 🔜 |
+| 3 | `WorldRoad` (fraction-magnitude · fractions > 1) | 🔜 |
+| 4 | `WorldWorkshop`, `WorldMarket` · équivalences | 🔜 |
+| 5 | `WorldMap` · dashboard enseignant | 🔜 |
+
+---
+
+## Fondements didactiques
+
+- **5 sens de la fraction** travaillés progressivement : partage, mesure, opérateur, quotient, commensuration
+- **Droite numérique omniprésente** : les fractions > 1 apparaissent naturellement dans la continuité des entiers, sans rupture conceptuelle
+- **Feedback immédiat non punitif** : l'erreur est une information, jamais une sanction
+- **Décomposition visible** : `2 + ¹⁄₄ = ⁹⁄₄` rendue explicite à chaque placement > 1
+
+## Références
+
+- Brousseau & Brousseau (1987) — fraction-commensuration
+- Projet REPSAF / Pôle Pégase (2022) — fraction comme magnitude
+- Amadieu & Tricot (2014) — *Apprendre avec le numérique*
+- CSEN / Dehaene et al. (2022) — test de la ligne numérique
