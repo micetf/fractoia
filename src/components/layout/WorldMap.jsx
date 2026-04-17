@@ -59,7 +59,7 @@ const WORLDS = [
         worldId: 5,
         x: 62,
         y: 78,
-        comingSoon: true,
+        comingSoon: false,
     },
 ];
 
@@ -264,18 +264,6 @@ function WorldMap({ current, onSelect }) {
                     );
                 })}
             </div>
-
-            <p
-                style={{
-                    marginTop: "1.5rem",
-                    color: "rgba(125,211,252,0.55)",
-                    fontFamily: "'Nunito', sans-serif",
-                    fontSize: "0.72rem",
-                    textAlign: "center",
-                }}
-            >
-                🔜 Monde 5 · Le Grand Festival — Sprint 5
-            </p>
         </div>
     );
 }
