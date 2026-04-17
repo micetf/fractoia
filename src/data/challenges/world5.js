@@ -16,13 +16,17 @@
  *   Contextes festifs simples pour entrer en douceur
  * - Palier 2 (défis 3-4) : fractions > 1 dans des sens variés
  *   L'élève ne sait pas à l'avance si la fraction dépasse 1
- * - Palier 3 (défis 5-6) : fractions bien > 2 — consolidation finale
+ * - Palier 3 (défis 5-6) : fractions bien supérieures à 2 — consolidation finale
  *   Brise définitivement la conception "la fraction, c'est toujours petit"
+ *
+ * Niveau programme (BO n°16, avril 2025) :
+ * - Tous les défis → "6e" : mobilisation de tous les sens sans appui systématique.
  *
  * @typedef {Object} FestivalChallenge
  * @property {number} num
  * @property {number} den
  * @property {number} max      - Étendue de la droite numérique
+ * @property {string} level    - Niveau programme cible (BO n°16, 2025)
  * @property {string} emoji
  * @property {string} context  - Mise en situation sans notation fractionnaire
  * @property {string} hint     - Indice en écriture littérale (≥ 2 erreurs)
@@ -36,6 +40,7 @@ export const WORLD5_CHALLENGES = [
         num: 2,
         den: 3,
         max: 2,
+        level: "6e",
         emoji: "🎆",
         context:
             "Les artificiers ont tiré 2 feux sur 3 prévus. Où se trouve ce moment sur la ligne du temps du spectacle ?",
@@ -46,6 +51,7 @@ export const WORLD5_CHALLENGES = [
         num: 5,
         den: 8,
         max: 2,
+        level: "6e",
         emoji: "🎵",
         context:
             "Le concert dure 8 actes. Après 5 actes, à quel endroit de la soirée se trouve le public ?",
@@ -58,6 +64,7 @@ export const WORLD5_CHALLENGES = [
         num: 7,
         den: 4,
         max: 3,
+        level: "6e",
         emoji: "🎡",
         context:
             "La grande roue fait des tours. Après sept quarts de tour, les nacelles ont dépassé le sommet et descendent encore.",
@@ -68,6 +75,7 @@ export const WORLD5_CHALLENGES = [
         num: 5,
         den: 3,
         max: 3,
+        level: "6e",
         emoji: "🎪",
         context:
             "L'acrobate traverse la scène 5 fois en 3 secondes. Combien de longueurs de scène parcoure-t-il chaque seconde ?",
@@ -80,6 +88,7 @@ export const WORLD5_CHALLENGES = [
         num: 9,
         den: 4,
         max: 4,
+        level: "6e",
         emoji: "🔭",
         context:
             "L'astronome du festival pointe sa lunette : l'étoile filante a parcouru neuf quarts de la largeur du ciel visible.",
@@ -90,6 +99,7 @@ export const WORLD5_CHALLENGES = [
         num: 8,
         den: 3,
         max: 4,
+        level: "6e",
         emoji: "🎠",
         context:
             "Le manège tourne : en 3 minutes il fait exactement 1 tour. Après 8 minutes, combien de tours complets et de fraction de tour a-t-il parcourus ?",

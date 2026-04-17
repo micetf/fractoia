@@ -100,7 +100,7 @@ function NumberLine({
                 aria-valuemin={min}
                 aria-valuemax={max}
                 aria-valuenow={value ?? min}
-                aria-label="Droite numérique interactive — cliquez pour placer votre réponse"
+                aria-label="Demi-droite graduée interactive — cliquez pour placer votre réponse"
             >
                 {/* Bandes alternées par entier */}
                 {Array.from({ length: max - min }, (_, i) => (

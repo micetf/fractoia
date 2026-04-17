@@ -79,6 +79,20 @@ Tricot et Amadieu confirment que l'élève apprend mieux quand il est **actif**,
 
 ---
 
+## Ciblage programmes cycle 3 — BO n°16, avril 2025
+
+| Monde | Titre | Niveau cible | Attendu officiel |
+|---|---|---|---|
+| 1 🌾 | La Ferme de Mila | CE2-révision / CM1 P1 | Reconnaître et nommer des fractions simples (dén. ≤ 8) ; placer une fraction ≤ 1 sur une demi-droite graduée |
+| 2 🔨 | L'Atelier de Koro | CM1 (unitaire) · CM2 (non-unitaire) | Utiliser une fraction comme opérateur multiplicatif — unitaire au CM1 (un tiers de 12), non-unitaire au CM2 (deux tiers de 12) |
+| 3 ⭐ | La Route des Étoiles | CM1 — objectif central | Encadrer une fraction par deux entiers consécutifs ; placer une fraction > 1 sur une demi-droite graduée |
+| 4 🏪 | Le Marché de Sao | 6ème | Comprendre qu'une fraction est le résultat d'un partage équitable : a ÷ b = a/b |
+| 5 🎪 | Le Grand Festival | 6ème — synthèse de cycle | Mobiliser les quatre sens de la fraction sans appui systématique |
+
+> **Attendu absent de l'application (à couvrir dans les prochains sprints) :**  
+> - CM2 : additionner et soustraire des fractions ayant le même dénominateur *(→ Sprint 4)*  
+> - CM1 : fraction comme mesure d'une grandeur *(→ Sprint 3)*
+
 ## Architecture technique complète
 
 ```
