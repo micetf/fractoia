@@ -40,7 +40,7 @@ src/
 ├── components/
 │   ├── ui/          # Composants réutilisables  (≤ 150 lignes)
 │   ├── worlds/      # Composants par monde      (≤ 200 lignes)
-│   └── layout/      # Structure générale
+│   └── layout/      # Structure générale        (≤ 200 lignes)
 ├── hooks/           # Logique métier             (≤ 80 lignes)
 ├── data/            # Défis et contenus narratifs
 └── App.jsx          # Orchestrateur              (≤ 200 lignes)
@@ -55,16 +55,16 @@ src/
 | Sprint | Contenu | Statut |
 |---|---|---|
 | 1 | Socle technique · `NumberLine` · hooks de base | ✅ Terminé |
-| 2 | `WorldFarm` (fraction-partage) · `useFractionChallenge` | 🔜 |
-| 3 | `WorldRoad` (fraction-magnitude · fractions > 1) | 🔜 |
-| 4 | `WorldWorkshop`, `WorldMarket` · équivalences | 🔜 |
-| 5 | `WorldMap` · dashboard enseignant | 🔜 |
+| 2 | `WorldFarm` (fraction-partage) · `useFractionChallenge` | ✅ Terminé |
+| 3 | `WorldRoad` (fraction-magnitude · fractions > 1) | ✅ Terminé |
+| 4 | `WorldWorkshop` · `WorldMarket` · `WorldMap` (hub île SVG) | ✅ Terminé |
+| 5 | `WorldFestival` · `TeacherDashboard` · unlock inter-monde | ✅ Terminé |
 
 ---
 
 ## Fondements didactiques
 
-- **5 sens de la fraction** travaillés progressivement : partage, mesure, opérateur, quotient, commensuration
+- **5 sens de la fraction** travaillés progressivement : partage, mesure, opérateur, quotient, magnitude
 - **Droite numérique omniprésente** : les fractions > 1 apparaissent naturellement dans la continuité des entiers, sans rupture conceptuelle
 - **Feedback immédiat non punitif** : l'erreur est une information, jamais une sanction
 - **Décomposition visible** : `2 + ¹⁄₄ = ⁹⁄₄` rendue explicite à chaque placement > 1

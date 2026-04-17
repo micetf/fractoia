@@ -1,7 +1,3 @@
-J'ai maintenant toute la matière nécessaire. Voici une synthèse de recherche approfondie suivie d'une proposition créative et fondée.
-
----
-
 # 🔬 Synthèse de recherche
 
 ## I. Didactique des fractions — ce que dit la recherche
@@ -40,25 +36,13 @@ Tricot distingue trois types de charges pour l'élève en activité : la **charg
 
 Tricot et Amadieu confirment que l'élève apprend mieux quand il est **actif**, qu'il **pratique**, et qu'il **reçoit des réponses en retour de ses erreurs**. Le jeu sérieux est une des voies pour y arriver, mais pour qu'un apprentissage efficace ait lieu, il faut que l'activité se déroule dans un **scénario pédagogique bien conçu**.
 
-L'outil informatique offre des **feedbacks immédiats**, ce qui constitue un puissant moteur pour l'apprentissage, même si la personnalisation complète reste complexe à mettre en œuvre.
-
-La réalité virtuelle montre peu d'effets positifs sur les apprentissages car elle génère trop d'éléments perturbateurs qui détournent l'attention. À l'inverse, plus l'élève est mis en situation de **participation active**, plus son attention est mobilisée, plus l'apprentissage est solide.
-
-### Les connaissances secondaires — une exigence d'effort
-
-Les connaissances secondaires (lecture, écriture, mathématiques) nécessitent un enseignement explicite, des efforts et de la motivation — contrairement aux apprentissages primaires acquis naturellement. La difficulté cognitive est souvent liée à des malentendus cognitifs, à l'impossibilité de mobiliser la bonne connaissance au bon moment, ou à la surcharge cognitive.
-
 ---
 
-# 🎮 Proposition d'application : **FRACTOÏA**
+# 🎮 FRACTOÏA — Architecture implémentée
 
 ## Vision générale
 
-> Un jeu d'aventure narratif à mondes progressifs, dans lequel un·e explorateur·rice reconstruit une île magique fracturée en utilisant des fractions dans tous leurs sens — jusqu'aux fractions supérieures à l'unité qui deviennent la clé du niveau final.
-
-**Pourquoi c'est addictif ?** Parce que la progression narrative crée un effet "encore un niveau", les feedbacks immédiats donnent satisfaction, la difficulté est calibrée (Vygotsky : ZPD), et les fractions > 1 ne sont plus un mur mais une **montée en puissance** narrative.
-
-**Pourquoi c'est didactiquement fondé ?** Parce que chaque monde active un sens différent de la fraction, la droite numérique est omniprésente, l'erreur est valorisée comme information, et il n'y a jamais de punition — seulement des essais.
+> Un jeu d'aventure narratif à 5 mondes progressifs dans lequel un·e explorateur·rice construit sa maîtrise des fractions — jusqu'aux fractions supérieures à l'unité qui deviennent la clé du monde final.
 
 ---
 
@@ -66,141 +50,161 @@ Les connaissances secondaires (lecture, écriture, mathématiques) nécessitent 
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  MONDE 1 : "La Ferme de Mila"  🌾                               │
-│  Sens : fraction-partage | fraction-mesure                      │
-│  Mécaniques : partager des tartes/terrains entre n personnes    │
-│  Clé : représentation visuelle + droite graduée 0→1            │
+│  MONDE 1 : "La Ferme de Mila"  🌾                   ✅          │
+│  Sens : fraction-partage (fractions ≤ 1, dén. ≤ 8)             │
+│  Mécaniques : FractionBar + droite numérique 0→2               │
+│  Hook : useFractionChallenge                                    │
 ├─────────────────────────────────────────────────────────────────┤
-│  MONDE 2 : "L'Atelier de Koro"  🔨                              │
-│  Sens : fraction-opérateur                                      │
-│  Mécaniques : prendre les 3/4 d'une planche, agrandir/réduire  │
-│  Clé : lien fraction × entier = opérateur multiplicatif        │
+│  MONDE 2 : "L'Atelier de Koro"  🔨                  ✅          │
+│  Sens : fraction-opérateur (num/den × total)                    │
+│  Mécaniques : équation num/den × total = ? + droite             │
+│  Hook : useOperatorChallenge  (target = num/den × total)        │
 ├─────────────────────────────────────────────────────────────────┤
-│  MONDE 3 : "La Route des Étoiles"  ⭐ ← PIVOT FRACTIONS > 1   │
+│  MONDE 3 : "La Route des Étoiles"  ⭐ ← PIVOT > 1  ✅          │
 │  Sens : fraction comme magnitude sur droite graduée             │
-│  Mécaniques : placer des jalons kilométriques                   │
-│  Clé : droite graduée étendue, décomposition entier + fraction │
+│  Mécaniques : droite 0→4, DecompBubble si valeur > 1           │
+│  Hook : useFractionChallenge                                    │
 ├─────────────────────────────────────────────────────────────────┤
-│  MONDE 4 : "Le Marché de Sao"  🏪                               │
-│  Sens : fraction-quotient + fractions équivalentes             │
-│  Mécaniques : partager 3 pizzas entre 4 personnes               │
-│  Clé : reconnaitre les équivalences, simplifier                │
+│  MONDE 4 : "Le Marché de Sao"  🏪                   ✅          │
+│  Sens : fraction-quotient (objects ÷ people = num/den)          │
+│  Mécaniques : équation objects ÷ people + droite                │
+│  Hook : useFractionChallenge                                    │
 ├─────────────────────────────────────────────────────────────────┤
-│  MONDE 5 : "Le Grand Festival"  🎪                              │
-│  Sens : TOUS + fractions > 1 en contextes variés               │
-│  Mécaniques : mélanger tous les sens, défi cronométré           │
-│  Clé : comparaison, encadrement, placer sur droite > 1         │
+│  MONDE 5 : "Le Grand Festival"  🎪                  ✅          │
+│  Sens : TOUS (partage, mesure, magnitude, quotient)             │
+│  Mécaniques : dispatcher par champ `sense`, badge discret       │
+│  Hook : useFractionChallenge                                    │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Mécaniques anti-conception bipartite
-
-Le cœur de l'innovation pédagogique de FRACTOÏA : **la droite numérique est toujours visible**, dès la première session. Elle s'étend progressivement :
-- Monde 1-2 : de 0 à 1
-- Monde 3 : de 0 à 3
-- Monde 4-5 : de 0 à 5+
-
-Les fractions supérieures à 1 **apparaissent naturellement** quand la route dépasse une balise entière. Jamais de rupture artificielle, jamais de message "attention, on change de règle".
-
----
-
-## Architecture technique React
+## Architecture technique complète
 
 ```
 src/
 ├── components/
-│   ├── ui/                          # Composants réutilisables (≤ 150 lignes)
-│   │   ├── FractionBar.jsx          # Barre de fraction interactive
-│   │   ├── NumberLine.jsx           # Droite graduée interactive
-│   │   ├── DecompBubble.jsx         # Décomposition entier + fraction
-│   │   ├── FractionDisplay.jsx      # Notation fractionnaire verticale
-│   │   ├── FeedbackToast.jsx        # Feedback immédiat
-│   │   └── ProgressStars.jsx        # Étoiles de progression
+│   ├── ui/
+│   │   ├── FractionBar.jsx          ✅  Barre partitionnée (sens partage)
+│   │   ├── NumberLine.jsx           ✅  Droite graduée interactive (SVG)
+│   │   ├── DecompBubble.jsx         ✅  Décomposition entier + fraction (> 1)
+│   │   ├── FractionDisplay.jsx      ✅  Notation fractionnaire verticale
+│   │   ├── FeedbackToast.jsx        ✅  Feedback immédiat animé
+│   │   ├── ProgressStars.jsx        ✅  Étoiles de progression (0-3)
+│   │   └── WorldNode.jsx            ✅  Nœud interactif sur WorldMap
 │   │
-│   ├── worlds/                      # Composants mondes (≤ 200 lignes)
-│   │   ├── WorldFarm.jsx            # Monde 1 - fraction-partage    ✅
-│   │   ├── WorldWorkshop.jsx        # Monde 2 - fraction-opérateur  🔜
-│   │   ├── WorldRoad.jsx            # Monde 3 - fraction-magnitude  ✅
-│   │   ├── WorldMarket.jsx          # Monde 4 - fraction-quotient   🔜
-│   │   └── WorldFestival.jsx        # Monde 5 - tous sens           🔜
+│   ├── worlds/
+│   │   ├── WorldFarm.jsx            ✅  Monde 1 — fraction-partage
+│   │   ├── WorldWorkshop.jsx        ✅  Monde 2 — fraction-opérateur
+│   │   ├── WorldRoad.jsx            ✅  Monde 3 — fraction-magnitude
+│   │   ├── WorldMarket.jsx          ✅  Monde 4 — fraction-quotient
+│   │   └── WorldFestival.jsx        ✅  Monde 5 — tous les sens
 │   │
 │   └── layout/
-│       ├── WorldMap.jsx             # Carte des mondes (hub)        🔜
-│       ├── GameHUD.jsx              # Interface en jeu              🔜
-│       └── TeacherDashboard.jsx     # Tableau de bord enseignant    🔜
+│       ├── WorldMap.jsx             ✅  Carte hub (île SVG + chemin animé)
+│       └── TeacherDashboard.jsx     ✅  Tableau de bord enseignant
 │
-├── hooks/                           # (≤ 80 lignes chacun)
-│   ├── useGameProgression.js        # Gestion progression / scores  ✅
-│   ├── useFractionChallenge.js      # Séquence de défis             ✅
-│   ├── useFeedback.js               # Logique feedback immédiat     ✅
-│   └── useLocalStorage.js           # Persistance locale            ✅
+├── hooks/
+│   ├── useLocalStorage.js           ✅  Persistance localStorage + reset
+│   ├── useFeedback.js               ✅  Feedback immédiat (success/error/hint)
+│   ├── useFractionChallenge.js      ✅  Séquence défis — target = num/den
+│   ├── useOperatorChallenge.js      ✅  Séquence défis — target = num/den × total
+│   └── useGameProgression.js        ✅  Progression globale, étoiles, unlock
 │
-├── data/
-│   └── challenges/
-│       ├── world1.js                # Défis monde 1                 ✅
-│       ├── world2.js                # Défis monde 2                 🔜
-│       ├── world3.js                # Défis monde 3                 ✅
-│       ├── world4.js                # Défis monde 4                 🔜
-│       └── world5.js                # Défis monde 5                 🔜
+├── data/challenges/
+│   ├── world1.js                    ✅  6 défis — partage, dén. ≤ 8
+│   ├── world2.js                    ✅  6 défis — opérateur (champs total, unit)
+│   ├── world3.js                    ✅  6 défis — magnitude, fractions > 1
+│   ├── world4.js                    ✅  6 défis — quotient (champs objects, people)
+│   └── world5.js                    ✅  6 défis — synthèse (champ sense)
 │
-└── App.jsx                          # Hub provisoire (→ WorldMap S4)✅
+└── App.jsx                          ✅  Routeur état + unlock inter-monde
 ```
+
+---
+
+## Patterns établis (ne pas modifier)
+
+### Styles boutons
+Objet inline via fonction `btn(bg, fg, px)` dans chaque composant monde — contourne Preflight Tailwind v4 sur `<button>`.
+
+### Dispatcher FractionBar / showDecomposition
+
+| Composant | Sens | FractionBar | showDecomposition |
+|---|---|---|---|
+| WorldFarm | partage | ✅ | `false` |
+| WorldWorkshop | opérateur | ❌ | `true` (résultat peut > 1) |
+| WorldRoad | magnitude | ❌ | `true` |
+| WorldMarket | quotient | ❌ | `true` |
+| WorldFestival | tous | si `sense==='partage'` | si `num > den` |
+
+### Hooks — différence clé
+
+- `useFractionChallenge` : `target = num / den`
+- `useOperatorChallenge` : `target = (num / den) × total`
+
+### Unlock inter-monde
+
+`unlockWorld(nextId)` est appelé dans `App.jsx` via `handleComplete(nextWorldId)` au `onComplete` de chaque monde. Il est **idempotent** — sans effet si le monde est déjà déverrouillé.
+
+| Monde terminé | Déverrouille |
+|---|---|
+| WorldFarm (1) | WorldWorkshop (2) |
+| WorldWorkshop (2) | WorldRoad (3) |
+| WorldRoad (3) | WorldMarket (4) |
+| WorldMarket (4) | WorldFestival (5) |
+| WorldFestival (5) | — |
+
+### Conventions data/ (tous fichiers challenges/worldN.js)
+
+- `context` : aucune notation fractionnaire — `FractionDisplay` affiche la fraction séparément
+- `hint` : écriture littérale uniquement ("trois demis", "cinq quarts"…), jamais de barre oblique
+- `sense` (world5 uniquement) : `'partage' | 'mesure' | 'magnitude' | 'quotient'` — non affiché à l'élève, exploité par `TeacherDashboard` et le dispatcher de `WorldFestival`
+
+### Champs supplémentaires par monde
+
+| Fichier | Champs extra | Usage |
+|---|---|---|
+| world2.js | `total`, `unit` | `useOperatorChallenge` calcule la cible ; `WorldWorkshop` affiche l'équation |
+| world4.js | `objects`, `people` | `WorldMarket` affiche l'équation ÷ |
+| world5.js | `sense` | `WorldFestival` dispatcher + `TeacherDashboard` SenseBreakdown |
+
+---
+
+## TeacherDashboard — structure
+
+| Bloc | Contenu |
+|---|---|
+| Résumé global | Étoiles /15 · Mondes terminés /5 · Taux de réussite global |
+| Ligne par monde | Bordure colorée · étoiles · barre taux · % réussite · moyenne essais · 🔒 si verrouillé |
+| Détail Festival | Décomposition par sens (4 barres) — visible si `world5.results` non vide |
+| Reset | `window.confirm` + `resetGame()` |
 
 ---
 
 ## Progression des sprints
 
-| Sprint | Contenu                                                        | Statut     |
-|--------|----------------------------------------------------------------|------------|
-| 1      | Socle technique · NumberLine · hooks de base                   | ✅ Terminé |
-| 2      | WorldFarm (fraction-partage) · useFractionChallenge            | ✅ Terminé |
-| 3      | WorldRoad (fraction-magnitude · fractions > 1)                 | ✅ Terminé |
-| 4      | WorldWorkshop · WorldMarket · WorldMap (hub visuel)            | 🔜         |
-| 5      | Dashboard enseignant · persistance avancée                     | 🔜         |
+| Sprint | Contenu | Statut |
+|---|---|---|
+| 1 | Socle technique · NumberLine · hooks de base | ✅ Terminé |
+| 2 | WorldFarm · useFractionChallenge · FractionBar | ✅ Terminé |
+| 3 | WorldRoad · fraction-magnitude · fractions > 1 | ✅ Terminé |
+| 4 | WorldWorkshop · WorldMarket · WorldMap (île SVG) | ✅ Terminé |
+| 5 | WorldFestival · TeacherDashboard · unlock inter-monde | ✅ Terminé |
 
 ---
 
-## Patterns établis
+## Principes Tricot intégrés
 
-### Différenciation des mondes selon le sens travaillé
-
-| Composant      | Sens             | FractionBar | showDecomposition |
-|----------------|------------------|-------------|-------------------|
-| WorldFarm      | Fraction-partage | ✅ présente | `false`           |
-| WorldRoad      | Fraction-magnitude | ❌ absente | `true`            |
-
-`showDecomposition=true` active automatiquement `DecompBubble` dès que `value > 1`
-sur la `NumberLine` — aucun code supplémentaire requis dans le composant monde.
-
-### Structure d'un fichier de défis (worldN.js)
-
-Chaque fichier suit une progression en 3 paliers :
-- **Palier 1** (défis 1-2) : cas emblématiques, entrée en matière douce
-- **Palier 2** (défis 3-4) : cas intermédiaires, outillage didactique nécessaire
-- **Palier 3** (défis 5-6) : cas limites, brise les conceptions intuitives
-
-### Conventions de texte (context / hint)
-
-- `context` : aucune fraction écrite — la situation narrative pose le décor,
-  `FractionDisplay` affiche la fraction séparément.
-- `hint` : écriture littérale uniquement ("trois demis", "cinq quarts"…),
-  jamais de notation barre oblique.
-
----
-
-## Principes Tricot intégrés à la conception
-
-| Principe Tricot                    | Implémentation dans FRACTOÏA                                  |
-|------------------------------------|---------------------------------------------------------------|
-| Réduire la charge extrinsèque      | Interface épurée : 1 fraction à la fois, pas de menus parasites |
-| Feedback immédiat                  | FeedbackToast dès la réponse, correction contextualisée       |
-| Activité active                    | Clic/drag sur la droite numérique                             |
-| Scénario pédagogique               | Histoire cohérente qui donne du sens à chaque défi            |
-| Connaissances secondaires = effort | Niveaux progressifs, pas de raccourci, récompenses méritées   |
-| Éviter surcharge attentionnelle    | Pas d'animations décoratives pendant les défis                |
-| Rôle de l'enseignant               | Dashboard dédié (Sprint 5), modes classe et individuel        |
+| Principe | Implémentation |
+|---|---|
+| Réduire la charge extrinsèque | Interface épurée : 1 fraction à la fois, pas de menus parasites |
+| Feedback immédiat | `FeedbackToast` dès la réponse, correction contextualisée |
+| Activité active | Clic sur la droite numérique SVG |
+| Scénario pédagogique | Histoire cohérente qui donne du sens à chaque défi |
+| Pas de punition | Erreur = information ; `showHint` à partir de 2 erreurs |
+| Éviter surcharge attentionnelle | Pas d'animations décoratives pendant les défis |
+| Rôle de l'enseignant | `TeacherDashboard` avec stats par monde et par sens |
 
 ---
 
