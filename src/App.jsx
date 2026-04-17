@@ -6,50 +6,50 @@ import WorldMarket from "./components/worlds/WorldMarket.jsx";
 import WorldFestival from "./components/worlds/WorldFestival.jsx";
 import WorldMap from "./components/layout/WorldMap.jsx";
 import TeacherDashboard from "./components/layout/TeacherDashboard.jsx";
+import { useGameProgression } from "./hooks/useGameProgression.js";
 
 /**
  * @typedef {'map'|'farm'|'workshop'|'road'|'market'|'festival'|'dashboard'} ScreenId
  */
 
 /**
- * Point d'entrée de FRACTOÏA — Sprint 5.
+ * Point d'entrée de FRACTOÏA.
  *
- * Navigation sans react-router-dom : un état `screen` pilote l'affichage.
- * - `'map'`       → WorldMap (hub île SVG, Sprint 4)
- * - `'farm'`      → Monde 1 — fraction-partage
- * - `'workshop'`  → Monde 2 — fraction-opérateur
- * - `'road'`      → Monde 3 — fraction-magnitude
- * - `'market'`    → Monde 4 — fraction-quotient
- * - `'festival'`  → Monde 5 — tous les sens (Sprint 5)
- * - `'dashboard'` → Tableau de bord enseignant (Sprint 5)
+ * Gestion de la progression inter-monde : onComplete de chaque monde
+ * appelle unlockWorld(nextId) avant de revenir à la carte.
+ * unlockWorld est idempotent — sans risque si appelé plusieurs fois.
  */
 function App() {
     const [screen, setScreen] = useState("map");
+    const { unlockWorld } = useGameProgression();
 
-    const goTo = (id) => setScreen(id);
     const goMap = () => setScreen("map");
+    const goTo = (id) => setScreen(id);
 
-    /* ── Mondes ─────────────────────────────────────────── */
-    if (screen === "farm") return <WorldFarm onComplete={goMap} />;
+    /**
+     * Termine un monde, déverrouille le suivant, retourne à la carte.
+     * @param {number} nextWorldId - Id du monde à déverrouiller (undefined = dernier monde)
+     */
+    const handleComplete = (nextWorldId) => {
+        if (nextWorldId) unlockWorld(nextWorldId);
+        goMap();
+    };
 
-    if (screen === "workshop") return <WorldWorkshop onComplete={goMap} />;
-
-    if (screen === "road") return <WorldRoad onComplete={goMap} />;
-
-    if (screen === "market") return <WorldMarket onComplete={goMap} />;
-
-    /* ── Sprint 5 : Festival (à livrer) ─────────────────── */
-    if (screen === "festival") return <WorldFestival onComplete={goMap} />;
-
-    /* ── Dashboard enseignant ────────────────────────────── */
+    if (screen === "farm")
+        return <WorldFarm onComplete={() => handleComplete(2)} />;
+    if (screen === "workshop")
+        return <WorldWorkshop onComplete={() => handleComplete(3)} />;
+    if (screen === "road")
+        return <WorldRoad onComplete={() => handleComplete(4)} />;
+    if (screen === "market")
+        return <WorldMarket onComplete={() => handleComplete(5)} />;
+    if (screen === "festival")
+        return <WorldFestival onComplete={() => handleComplete()} />;
     if (screen === "dashboard") return <TeacherDashboard onClose={goMap} />;
 
-    /* ── Carte des mondes (hub) ──────────────────────────── */
     return (
         <div style={{ position: "relative" }}>
             <WorldMap onSelect={goTo} />
-
-            {/* Accès tableau de bord — bouton flottant discret */}
             <button
                 onClick={() => goTo("dashboard")}
                 title="Tableau de bord enseignant"
