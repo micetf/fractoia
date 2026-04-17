@@ -7,8 +7,7 @@ import { useGameProgression } from "../../hooks/useGameProgression.js";
 
 /**
  * Configuration des 5 mondes.
- * x / y : position en % du conteneur SVG (viewBox 0 0 100 100).
- * La progression grimpe vers le sommet (Monde 3) puis redescend vers le Festival.
+ * x / y : position en % du conteneur (viewBox SVG 0 0 100 100).
  * @type {WorldEntry[]}
  */
 const WORLDS = [
@@ -30,7 +29,7 @@ const WORLDS = [
         worldId: 2,
         x: 28,
         y: 52,
-        comingSoon: true,
+        comingSoon: false,
     },
     {
         id: "road",
@@ -50,7 +49,7 @@ const WORLDS = [
         worldId: 4,
         x: 74,
         y: 52,
-        comingSoon: true,
+        comingSoon: false,
     },
     {
         id: "festival",
@@ -64,14 +63,12 @@ const WORLDS = [
     },
 ];
 
-/** Chemin pointillé reliant les mondes dans l'ordre de progression. */
 const PATH_D =
     "M 15,78 C 20,65 24,58 28,52 " +
     "C 36,36 43,25 50,16 " +
     "C 57,25 65,38 74,52 " +
     "C 71,60 67,69 62,78";
 
-/** Silhouette de l'île (coordonnées SVG 0-100). */
 const ISLAND_D =
     "M 8,87 C 5,73 8,59 14,47 C 20,35 28,25 38,17 " +
     "C 46,11 55,9 64,13 C 73,17 80,25 85,37 " +
@@ -80,11 +77,10 @@ const ISLAND_D =
 
 /**
  * Hub de navigation principale — Carte des mondes de FRACTOÏA.
- * Remplace le WorldSelector provisoire (Sprint 1-3).
  *
- * Visuel : île fractale vue du ciel, avec chemin d'aventure entre les mondes.
- * La progression monte vers le sommet (La Route des Étoiles) puis redescend
- * vers Le Grand Festival, matérialisant l'élargissement progressif des fractions.
+ * Visuel : île fractale vue du ciel, chemin d'aventure entre les mondes.
+ * La progression monte vers le sommet (Monde 3) puis redescend vers le Festival,
+ * matérialisant l'élargissement progressif des fractions.
  *
  * @param {Object}            props
  * @param {string|null}       props.current  - Id du monde actif (surbrillance)
@@ -203,8 +199,6 @@ function WorldMap({ current, onSelect }) {
                             />
                         </radialGradient>
                     </defs>
-
-                    {/* Halo océan */}
                     <ellipse
                         cx="50"
                         cy="50"
@@ -212,8 +206,6 @@ function WorldMap({ current, onSelect }) {
                         ry="52"
                         fill="url(#oceanGlow)"
                     />
-
-                    {/* Ombre portée de l'île */}
                     <ellipse
                         cx="50"
                         cy="95"
@@ -221,11 +213,7 @@ function WorldMap({ current, onSelect }) {
                         ry="4.5"
                         fill="rgba(0,0,0,0.22)"
                     />
-
-                    {/* Corps de l'île */}
                     <path d={ISLAND_D} fill="url(#islandGrad)" />
-
-                    {/* Liseré sableux */}
                     <path
                         d={ISLAND_D}
                         fill="none"
@@ -233,8 +221,6 @@ function WorldMap({ current, onSelect }) {
                         strokeWidth="0.9"
                         opacity="0.45"
                     />
-
-                    {/* Pic montagneux — Monde 3 (Route des Étoiles) */}
                     <polygon
                         points="50,3 43.5,17 56.5,17"
                         fill="#94a3b8"
@@ -245,8 +231,6 @@ function WorldMap({ current, onSelect }) {
                         fill="#f1f5f9"
                         opacity="0.65"
                     />
-
-                    {/* Chemin pointillé */}
                     <path
                         d={PATH_D}
                         fill="none"
@@ -281,7 +265,6 @@ function WorldMap({ current, onSelect }) {
                 })}
             </div>
 
-            {/* ── Pied de carte ── */}
             <p
                 style={{
                     marginTop: "1.5rem",
@@ -291,7 +274,7 @@ function WorldMap({ current, onSelect }) {
                     textAlign: "center",
                 }}
             >
-                🔜 Mondes 2, 4 et 5 disponibles au prochain sprint
+                🔜 Monde 5 · Le Grand Festival — Sprint 5
             </p>
         </div>
     );
