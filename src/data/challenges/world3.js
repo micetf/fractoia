@@ -5,32 +5,29 @@
  *
  * Conventions d'écriture dans les textes :
  * - `context` : aucune fraction écrite — la fraction est affichée par FractionDisplay.
- *   Le contexte narratif pose la situation sans dupliquer la notation.
  * - `hint`    : écriture littérale des fractions ("trois demis", "un quart"…)
- *   pour ne pas ancrer la notation barre oblique dans la mémoire de l'élève.
  *
  * Progression didactique :
  * - Palier 1 (défis 1-2) : juste après 1 — 3/2, 5/4
- *   → l'élève dépasse l'entier pour la première fois
  * - Palier 2 (défis 3-4) : entre 1 et 2 — 7/4, 5/3
- *   → la décomposition entier + fraction devient indispensable
  * - Palier 3 (défis 5-6) : proches de 2 ou au-delà — 9/4, 7/3
- *   → consolidation ; sept tiers > 2 brise définitivement la conception bipartite
+ *
+ * Sprint 2 — champ `bracket` :
+ * Encadrement par deux entiers consécutifs (attendu CM1, BO n°16, 2025).
+ * Utilisé par BracketQuestion pour la phase d'encadrement avant placement.
  *
  * Niveau programme (BO n°16, avril 2025) :
- * - Tous les défis → "CM1" :
- *   "Savoir encadrer une fraction par deux entiers consécutifs ;
- *    savoir placer une fraction ou la somme d'un nombre entier et d'une fraction
- *    inférieure à un sur une demi-droite graduée."
+ * - Tous les défis → "CM1" : encadrement + placement sur demi-droite graduée.
  *
  * @typedef {Object} RoadChallenge
- * @property {number} num        - Numérateur
- * @property {number} den        - Dénominateur
- * @property {number} max        - Étendue de la droite numérique
- * @property {string} level      - Niveau programme cible (BO n°16, 2025)
- * @property {string} emoji
- * @property {string} context    - Mise en situation narrative (sans notation fractionnaire)
- * @property {string} hint       - Indice en écriture littérale (≥ 2 erreurs)
+ * @property {number}   num
+ * @property {number}   den
+ * @property {number}   max      - Étendue de la droite numérique
+ * @property {number[]} bracket  - [entier inférieur, entier supérieur]
+ * @property {string}   level    - Niveau programme cible (BO n°16, 2025)
+ * @property {string}   emoji
+ * @property {string}   context  - Mise en situation narrative (sans notation fractionnaire)
+ * @property {string}   hint     - Indice en écriture littérale (≥ 2 erreurs)
  */
 
 /** @type {RoadChallenge[]} */
@@ -40,6 +37,7 @@ export const WORLD3_CHALLENGES = [
         num: 3,
         den: 2,
         max: 3,
+        bracket: [1, 2],
         level: "CM1",
         emoji: "🚩",
         context:
@@ -50,6 +48,7 @@ export const WORLD3_CHALLENGES = [
         num: 5,
         den: 4,
         max: 3,
+        bracket: [1, 2],
         level: "CM1",
         emoji: "⛺",
         context:
@@ -62,6 +61,7 @@ export const WORLD3_CHALLENGES = [
         num: 7,
         den: 4,
         max: 3,
+        bracket: [1, 2],
         level: "CM1",
         emoji: "🌟",
         context:
@@ -72,6 +72,7 @@ export const WORLD3_CHALLENGES = [
         num: 5,
         den: 3,
         max: 3,
+        bracket: [1, 2],
         level: "CM1",
         emoji: "🏕️",
         context:
@@ -84,6 +85,7 @@ export const WORLD3_CHALLENGES = [
         num: 9,
         den: 4,
         max: 4,
+        bracket: [2, 3],
         level: "CM1",
         emoji: "🔭",
         context:
@@ -94,6 +96,7 @@ export const WORLD3_CHALLENGES = [
         num: 7,
         den: 3,
         max: 4,
+        bracket: [2, 3],
         level: "CM1",
         emoji: "🎪",
         context:

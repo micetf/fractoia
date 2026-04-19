@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import NumberLine from "../ui/NumberLine.jsx";
 import FractionDisplay from "../ui/FractionDisplay.jsx";
+import BracketQuestion from "../ui/BracketQuestion.jsx";
 import FeedbackToast from "../ui/FeedbackToast.jsx";
 import ProgressStars from "../ui/ProgressStars.jsx";
 import { useFeedback } from "../../hooks/useFeedback.js";
@@ -8,9 +9,8 @@ import { useFractionChallenge } from "../../hooks/useFractionChallenge.js";
 import { useGameProgression } from "../../hooks/useGameProgression.js";
 import { WORLD3_CHALLENGES } from "../../data/challenges/world3.js";
 
-/* Styles boutons inline — contourne Preflight Tailwind v4 sur <button> */
 const btn = (bg, fg = "#0f0a2e", px = "2rem") => ({
-    padding: `0.75rem ${px}`,
+    padding: "0.75rem " + px,
     borderRadius: "1rem",
     fontSize: "1.125rem",
     fontWeight: 700,
@@ -27,14 +27,13 @@ const BTN_RESET = btn("#818cf8", "#0f0a2e", "1.5rem");
 /**
  * Monde 3 "La Route des Étoiles" — fraction comme magnitude (fractions > 1).
  *
- * Pivot didactique : la droite numérique dépasse l'entier 1 sans rupture.
- * `showDecomposition=true` active le DecompBubble dès qu'une fraction > 1
- * est placée, rendant la décomposition entier + fraction explicite.
- *
- * Pas de FractionBar : le sens partage n'est pas travaillé ici.
+ * Sprint 2 — phase d'encadrement :
+ * Chaque défi commence par une question d'encadrement (BracketQuestion)
+ * conformément à l'attendu CM1 BO n°16, 2025. Une fois l'encadrement
+ * validé, la demi-droite s'ouvre avec les bornes visuellement marquées.
  *
  * @param {Object}   props
- * @param {function} [props.onComplete] - Callback fin de monde
+ * @param {function} [props.onComplete]
  */
 function WorldRoad({ onComplete }) {
     const [answer, setAnswer] = useState(null);
@@ -42,8 +41,18 @@ function WorldRoad({ onComplete }) {
     const [starsEarned, setStarsEarned] = useState(0);
 
     const { feedback, showSuccess, showError, showHint } = useFeedback();
-    const { challenge, index, total, target, done, check, next, reset } =
-        useFractionChallenge(WORLD3_CHALLENGES);
+    const {
+        challenge,
+        index,
+        total,
+        target,
+        phase,
+        done,
+        check,
+        confirmBracket,
+        next,
+        reset,
+    } = useFractionChallenge(WORLD3_CHALLENGES);
     const { recordResult } = useGameProgression();
 
     const handleAnswer = useCallback(
@@ -197,44 +206,36 @@ function WorldRoad({ onComplete }) {
                             margin: "0.2rem 0 0",
                         }}
                     >
-                        Monde 3 · Fraction-magnitude
+                        Défi {index + 1} / {total}
                     </p>
-                </div>
-                <div
-                    style={{
-                        fontFamily: "'Nunito', sans-serif",
-                        fontSize: "0.875rem",
-                        color: "#a5b4fc",
-                        display: "flex",
-                        gap: "0.2rem",
-                        alignItems: "center",
-                    }}
-                >
-                    <span>Défi</span>
-                    <strong style={{ color: "#e0e7ff" }}>{index + 1}</strong>
-                    <span>/</span>
-                    <span>{total}</span>
                 </div>
             </header>
 
             <main style={{ maxWidth: "42rem", margin: "0 auto" }}>
                 <div
                     style={{
+                        background: "rgba(255,255,255,0.04)",
                         borderRadius: "1.5rem",
-                        padding: "1.75rem",
-                        backgroundColor: "rgba(255,255,255,0.06)",
-                        border: "2px solid rgba(165,180,252,0.25)",
-                        boxShadow: "0 8px 32px -4px rgba(0,0,0,0.5)",
+                        border: "1px solid rgba(165,180,252,0.2)",
+                        padding: "1.5rem 1.25rem",
                     }}
                 >
-                    {/* Contexte narratif */}
+                    {/* Contexte narratif — toujours visible */}
                     <div
-                        className="animate-float-up"
-                        style={{ textAlign: "center", marginBottom: "1.25rem" }}
+                        style={{
+                            background: "rgba(255,255,255,0.05)",
+                            borderRadius: "1rem",
+                            padding: "1rem",
+                            marginBottom: "1.25rem",
+                            display: "flex",
+                            gap: "0.75rem",
+                            alignItems: "flex-start",
+                        }}
                     >
                         <div
                             style={{
-                                fontSize: "2.5rem",
+                                fontSize: "1.75rem",
+                                lineHeight: 1,
                                 marginBottom: "0.5rem",
                             }}
                         >
@@ -253,59 +254,76 @@ function WorldRoad({ onComplete }) {
                         </p>
                     </div>
 
-                    {/* Fraction à placer — couleurs adaptées au thème sombre */}
-                    <div
-                        style={{ textAlign: "center", marginBottom: "1.25rem" }}
-                    >
-                        <FractionDisplay
-                            numerator={challenge.num}
-                            denominator={challenge.den}
-                            size="lg"
-                            color="#e0e7ff"
-                            barColor="#818cf8"
+                    {/* Phase BRACKET — question d'encadrement */}
+                    {phase === "bracket" && (
+                        <BracketQuestion
+                            challenge={challenge}
+                            onCorrect={confirmBracket}
                         />
-                    </div>
+                    )}
 
-                    {/* Droite numérique — showDecomposition déclenche DecompBubble dès value > 1 */}
-                    <div style={{ marginBottom: "0.5rem" }}>
-                        <NumberLine
-                            min={0}
-                            max={challenge.max}
-                            denominator={challenge.den}
-                            value={answer}
-                            onChange={handleAnswer}
-                            showDecomposition
-                            disabled={showCorrection}
-                            targetValue={showCorrection ? target : null}
-                        />
-                    </div>
-
-                    {/* Actions */}
-                    {!showCorrection ? (
-                        <div
-                            className="flex justify-center"
-                            style={{ marginTop: "1.5rem" }}
-                        >
-                            <button
-                                onClick={handleValidate}
-                                style={BTN_VALIDATE}
-                                className="animate-pulse-glow"
+                    {/* Phase PLACE — placement sur la demi-droite */}
+                    {phase === "place" && (
+                        <>
+                            <div
+                                style={{
+                                    textAlign: "center",
+                                    marginBottom: "1.25rem",
+                                }}
                             >
-                                Valider ✓
-                            </button>
-                        </div>
-                    ) : (
-                        <div
-                            className="flex flex-col items-center animate-float-up"
-                            style={{ gap: "1rem", marginTop: "1.5rem" }}
-                        >
-                            <ProgressStars count={starsEarned} animate />
-                            <button onClick={handleNext} style={BTN_NEXT}>
-                                {index + 1 < total
-                                    ? "Défi suivant →"
-                                    : "Terminer le monde ⭐"}
-                            </button>
-                        </div>
+                                <FractionDisplay
+                                    numerator={challenge.num}
+                                    denominator={challenge.den}
+                                    size="lg"
+                                    color="#e0e7ff"
+                                    barColor="#818cf8"
+                                />
+                            </div>
+                            <div style={{ marginBottom: "0.5rem" }}>
+                                <NumberLine
+                                    min={0}
+                                    max={challenge.max}
+                                    denominator={challenge.den}
+                                    value={answer}
+                                    onChange={handleAnswer}
+                                    showDecomposition
+                                    disabled={showCorrection}
+                                    targetValue={showCorrection ? target : null}
+                                />
+                            </div>
+                            {!showCorrection ? (
+                                <div
+                                    className="flex justify-center"
+                                    style={{ marginTop: "1.5rem" }}
+                                >
+                                    <button
+                                        onClick={handleValidate}
+                                        style={BTN_VALIDATE}
+                                        className="animate-pulse-glow"
+                                    >
+                                        Valider ✓
+                                    </button>
+                                </div>
+                            ) : (
+                                <div
+                                    className="flex flex-col items-center animate-float-up"
+                                    style={{ gap: "1rem", marginTop: "1.5rem" }}
+                                >
+                                    <ProgressStars
+                                        count={starsEarned}
+                                        animate
+                                    />
+                                    <button
+                                        onClick={handleNext}
+                                        style={BTN_NEXT}
+                                    >
+                                        {index + 1 < total
+                                            ? "Défi suivant →"
+                                            : "Terminer le monde ⭐"}
+                                    </button>
+                                </div>
+                            )}
+                        </>
                     )}
                 </div>
 

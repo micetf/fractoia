@@ -1,42 +1,23 @@
 import { useState, useCallback } from "react";
 
 /**
- * @typedef {Object} CheckResult
- * @property {boolean} correct
- * @property {number}  attempts
- * @property {boolean} showHint - true si ≥ 2 erreurs consécutives
- */
-
-/**
- * Gère la séquence de défis et la logique de réponse/indices.
+ * Gère la séquence de défis fraction avec phase d'encadrement optionnelle.
  *
- * Principe Tricot : le feedback s'adapte au nombre de tentatives —
- * 1re erreur → encouragement simple,
- * 2e erreur  → indice contextuel lié à la situation.
+ * Si le défi possède un champ `bracket`, démarre en phase `'bracket'`.
+ * `confirmBracket()` passe en phase `'place'` sans reset.
+ * Sans `bracket` (world1, world4, world5) : phase `'place'` directe — rétrocompatible.
  *
  * @template T
- * @param {T[]} challenges    - Tableau de défis à parcourir
+ * @param {T[]} challenges
  * @param {number} [tolerance=0.02]
- * @returns {{
- *   challenge: T,
- *   index: number,
- *   total: number,
- *   attempts: number,
- *   target: number,
- *   done: boolean,
- *   check: function(number): CheckResult,
- *   next: function(): void,
- *   reset: function(): void,
- * }}
- *
- * @example
- * const { challenge, check, next, done } = useFractionChallenge(WORLD1_CHALLENGES)
- * const result = check(userAnswer) // { correct, attempts, showHint }
  */
 export function useFractionChallenge(challenges, tolerance = 0.02) {
+    const initPhase = (ch) => (ch?.bracket ? "bracket" : "place");
+
     const [index, setIndex] = useState(0);
     const [attempts, setAttempts] = useState(0);
     const [done, setDone] = useState(false);
+    const [phase, setPhase] = useState(() => initPhase(challenges[0]));
 
     const challenge = challenges[index];
     const target = challenge ? challenge.num / challenge.den : 0;
@@ -51,20 +32,25 @@ export function useFractionChallenge(challenges, tolerance = 0.02) {
         [attempts, target, tolerance]
     );
 
+    const confirmBracket = useCallback(() => setPhase("place"), []);
+
     const next = useCallback(() => {
         if (index + 1 >= challenges.length) {
             setDone(true);
         } else {
-            setIndex((i) => i + 1);
+            const nextIdx = index + 1;
+            setIndex(nextIdx);
             setAttempts(0);
+            setPhase(initPhase(challenges[nextIdx]));
         }
-    }, [index, challenges.length]);
+    }, [index, challenges]);
 
     const reset = useCallback(() => {
         setIndex(0);
         setAttempts(0);
         setDone(false);
-    }, []);
+        setPhase(initPhase(challenges[0]));
+    }, [challenges]);
 
     return {
         challenge,
@@ -72,8 +58,10 @@ export function useFractionChallenge(challenges, tolerance = 0.02) {
         total: challenges.length,
         attempts,
         target,
+        phase,
         done,
         check,
+        confirmBracket,
         next,
         reset,
     };
