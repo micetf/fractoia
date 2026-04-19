@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { GameProgressionProvider } from "./hooks/useGameProgression.js";
+import { useGameProgression } from "./hooks/useGameProgression.js";
 import WorldFarm from "./components/worlds/WorldFarm.jsx";
 import WorldWorkshop from "./components/worlds/WorldWorkshop.jsx";
 import WorldRoad from "./components/worlds/WorldRoad.jsx";
@@ -6,20 +8,13 @@ import WorldMarket from "./components/worlds/WorldMarket.jsx";
 import WorldFestival from "./components/worlds/WorldFestival.jsx";
 import WorldMap from "./components/layout/WorldMap.jsx";
 import TeacherDashboard from "./components/layout/TeacherDashboard.jsx";
-import { useGameProgression } from "./hooks/useGameProgression.js";
 
 /**
- * @typedef {'map'|'farm'|'workshop'|'road'|'market'|'festival'|'dashboard'} ScreenId
+ * Routeur interne — consomme le Context GameProgressionProvider.
+ * Séparé de App pour que useGameProgression() soit appelé
+ * à l'intérieur du Provider (règle des hooks React).
  */
-
-/**
- * Point d'entrée de FRACTOÏA.
- *
- * Gestion de la progression inter-monde : onComplete de chaque monde
- * appelle unlockWorld(nextId) avant de revenir à la carte.
- * unlockWorld est idempotent — sans risque si appelé plusieurs fois.
- */
-function App() {
+function AppRouter() {
     const [screen, setScreen] = useState("map");
     const { unlockWorld } = useGameProgression();
 
@@ -28,7 +23,7 @@ function App() {
 
     /**
      * Termine un monde, déverrouille le suivant, retourne à la carte.
-     * @param {number} nextWorldId - Id du monde à déverrouiller (undefined = dernier monde)
+     * @param {number} [nextWorldId]
      */
     const handleComplete = (nextWorldId) => {
         if (nextWorldId) unlockWorld(nextWorldId);
@@ -74,6 +69,20 @@ function App() {
                 📋 Enseignant
             </button>
         </div>
+    );
+}
+
+/**
+ * Point d'entrée de FRACTOÏA.
+ * GameProgressionProvider garantit une instance unique de useGameProgression
+ * partagée entre App, WorldMap, TeacherDashboard et tous les mondes.
+ * Élimine la désynchronisation entre useState indépendants.
+ */
+function App() {
+    return (
+        <GameProgressionProvider>
+            <AppRouter />
+        </GameProgressionProvider>
     );
 }
 

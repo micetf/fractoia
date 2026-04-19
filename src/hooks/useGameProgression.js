@@ -1,13 +1,6 @@
-import { useCallback } from "react";
+import { useCallback, createContext, useContext, createElement } from "react";
 import { useLocalStorage } from "./useLocalStorage.js";
 
-/**
- * @typedef {{ challengeIndex: number, success: boolean, attempts: number }} ChallengeResult
- * @typedef {{ worldId: number, results: ChallengeResult[], unlocked: boolean, stars: number }} WorldProgress
- * @typedef {{ currentWorld: number, worlds: WorldProgress[], totalStars: number }} GameState
- */
-
-/** @type {GameState} */
 const INIT = {
     currentWorld: 1,
     totalStars: 0,
@@ -19,8 +12,9 @@ const INIT = {
     })),
 };
 
-/** Calcule les étoiles d'un monde en fonction des résultats. @param {ChallengeResult[]} r */
+/** Guard r.length > 0 : tableau vide = 0 étoiles (fix edge case calcStars). */
 const calcStars = (r) => {
+    if (!r.length) return 0;
     const ok = r.filter((x) => x.success).length;
     return ok >= r.length
         ? 3
@@ -30,13 +24,14 @@ const calcStars = (r) => {
             ? 1
             : 0;
 };
+const GameProgressionContext = createContext(null);
 
 /**
- * Gère la progression globale du joueur dans FRACTOÏA.
- *
- * @returns {{ gameState: GameState, recordResult: function, unlockWorld: function, getWorldProgress: function, resetGame: function }}
+ * Provider racine — instance unique partagée entre tous les composants.
+ * Élimine la désynchronisation entre useState indépendants (bug unlock stale state).
+ * À placer dans App.jsx, au-dessus de AppRouter.
  */
-export function useGameProgression() {
+export function GameProgressionProvider({ children }) {
     const [gameState, setGameState, resetGame] = useLocalStorage(
         "fractoia_progress",
         INIT
@@ -86,11 +81,31 @@ export function useGameProgression() {
         [gameState]
     );
 
-    return {
-        gameState,
-        recordResult,
-        unlockWorld,
-        getWorldProgress,
-        resetGame,
-    };
+    // createElement évite le JSX dans un fichier .js (Vite/OXC refuse JSX hors .jsx)
+    return createElement(
+        GameProgressionContext.Provider,
+        {
+            value: {
+                gameState,
+                recordResult,
+                unlockWorld,
+                getWorldProgress,
+                resetGame,
+            },
+        },
+        children
+    );
+}
+
+/**
+ * API identique à l'ancienne version — aucun composant consommateur à modifier.
+ * Lève une erreur explicite si utilisé hors Provider.
+ */
+export function useGameProgression() {
+    const ctx = useContext(GameProgressionContext);
+    if (!ctx)
+        throw new Error(
+            "useGameProgression doit être dans <GameProgressionProvider>"
+        );
+    return ctx;
 }
