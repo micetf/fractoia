@@ -273,7 +273,9 @@ function WorldWorkshop({ onComplete }) {
                             </div>
                         </div>
                     ) : (
-                        /* Sens opérateur : équation num/den × total = ? */
+                        /* Sens opérateur : équation num/den × total unit = ? unit
+                           Unités affichées en ligne (baseline) — jamais en dessous
+                           d'un chiffre pour éviter toute confusion avec un dénominateur. */
                         <div
                             style={{
                                 display: "flex",
@@ -299,8 +301,14 @@ function WorldWorkshop({ onComplete }) {
                             >
                                 ×
                             </span>
-                            <div style={{ textAlign: "center", lineHeight: 1 }}>
-                                <div
+                            <div
+                                style={{
+                                    display: "flex",
+                                    alignItems: "baseline",
+                                    gap: "0.25rem",
+                                }}
+                            >
+                                <span
                                     style={{
                                         fontFamily: "'Baloo 2', sans-serif",
                                         fontSize: "2.5rem",
@@ -309,17 +317,17 @@ function WorldWorkshop({ onComplete }) {
                                     }}
                                 >
                                     {challenge.total}
-                                </div>
-                                <div
+                                </span>
+                                <span
                                     style={{
                                         fontFamily: "'Nunito', sans-serif",
-                                        fontSize: "0.75rem",
+                                        fontSize: "1rem",
                                         color: "#9c6b30",
                                         fontWeight: 600,
                                     }}
                                 >
                                     {challenge.unit}
-                                </div>
+                                </span>
                             </div>
                             <span
                                 style={{
@@ -331,8 +339,14 @@ function WorldWorkshop({ onComplete }) {
                             >
                                 =
                             </span>
-                            <div style={{ textAlign: "center", lineHeight: 1 }}>
-                                <div
+                            <div
+                                style={{
+                                    display: "flex",
+                                    alignItems: "baseline",
+                                    gap: "0.25rem",
+                                }}
+                            >
+                                <span
                                     style={{
                                         fontFamily: "'Baloo 2', sans-serif",
                                         fontSize: "2.5rem",
@@ -343,18 +357,18 @@ function WorldWorkshop({ onComplete }) {
                                     }}
                                 >
                                     {showCorrection ? fmt(target) : "?"}
-                                </div>
+                                </span>
                                 {showCorrection && (
-                                    <div
+                                    <span
                                         style={{
                                             fontFamily: "'Nunito', sans-serif",
-                                            fontSize: "0.75rem",
+                                            fontSize: "1rem",
                                             color: "#059669",
                                             fontWeight: 600,
                                         }}
                                     >
                                         {challenge.unit}
-                                    </div>
+                                    </span>
                                 )}
                             </div>
                         </div>
