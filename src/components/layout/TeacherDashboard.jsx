@@ -1,21 +1,50 @@
+import { useState } from "react";
 import { useGameProgression } from "../../hooks/useGameProgression.js";
 import ProgressStars from "../ui/ProgressStars.jsx";
-import { WORLD5_CHALLENGES } from "../../data/challenges/world5.js";
+import SenseBreakdown from "../ui/SenseBreakdown.jsx";
+import AboutPrograms from "../ui/AboutPrograms.jsx";
+
+// ── Données programmes BO n°16, 2025 ────────────────────────────────────────
 
 const WORLDS_META = [
-    { id: 1, label: "🌾 La Ferme de Mila", color: "#f59e0b" },
-    { id: 2, label: "🔨 L'Atelier de Koro", color: "#f97316" },
-    { id: 3, label: "⭐ La Route des Étoiles", color: "#818cf8" },
-    { id: 4, label: "🏪 Le Marché de Sao", color: "#34d399" },
-    { id: 5, label: "🎪 Le Grand Festival", color: "#ec4899" },
+    {
+        id: 1,
+        label: "🌾 La Ferme de Mila",
+        color: "#f59e0b",
+        level: "CE2-révision / CM1",
+        attendu: "Fraction-partage · Fractions ≤ 1 (dén. ≤ 8)",
+    },
+    {
+        id: 2,
+        label: "🔨 L'Atelier de Koro",
+        color: "#f97316",
+        level: "CM1 (unitaire) · CM2 (non-unitaire)",
+        attendu: "Fraction-opérateur · Unitaire CM1, non-unitaire CM2",
+    },
+    {
+        id: 3,
+        label: "⭐ La Route des Étoiles",
+        color: "#818cf8",
+        level: "CM1 — objectif central",
+        attendu: "Fractions > 1 · Demi-droite · Encadrement",
+    },
+    {
+        id: 4,
+        label: "🏪 Le Marché de Sao",
+        color: "#34d399",
+        level: "6ème",
+        attendu: "Fraction-quotient · a ÷ b = a/b",
+    },
+    {
+        id: 5,
+        label: "🎪 Le Grand Festival",
+        color: "#ec4899",
+        level: "6ème — synthèse",
+        attendu: "Tous les sens · Sans appui systématique",
+    },
 ];
 
-const SENSE_META = {
-    partage: { label: "Partage", color: "#f59e0b" },
-    mesure: { label: "Mesure", color: "#3b82f6" },
-    magnitude: { label: "Magnitude", color: "#818cf8" },
-    quotient: { label: "Quotient", color: "#34d399" },
-};
+// ── Utilitaires ──────────────────────────────────────────────────────────────
 
 const calcStats = (r) => {
     if (!r.length) return { rate: 0, avg: 0, n: 0 };
@@ -46,6 +75,8 @@ const Bar = ({ pct, color }) => (
     </div>
 );
 
+// ── WorldRow ─────────────────────────────────────────────────────────────────
+
 function WorldRow({ meta, data }) {
     const { rate, avg, n } = calcStats(data.results);
     const done = data.stars > 0;
@@ -61,7 +92,12 @@ function WorldRow({ meta, data }) {
             }}
         >
             <div
-                style={{ display: "flex", alignItems: "center", gap: ".75rem" }}
+                style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: ".75rem",
+                    marginBottom: ".3rem",
+                }}
             >
                 <span
                     style={{
@@ -75,20 +111,33 @@ function WorldRow({ meta, data }) {
                     {meta.label}
                 </span>
                 {data.unlocked ? (
-                    <ProgressStars count={data.stars} size="sm" />
+                    <ProgressStars count={data.stars} total={3} size="sm" />
                 ) : (
-                    <span style={{ fontSize: ".7rem", color: "#b8956a" }}>
-                        🔒
-                    </span>
+                    <span style={{ fontSize: ".85rem" }}>🔒</span>
                 )}
             </div>
-            {done && (
+            <div
+                style={{
+                    display: "inline-block",
+                    fontSize: ".65rem",
+                    fontFamily: "'Nunito',sans-serif",
+                    fontWeight: 700,
+                    color: meta.color,
+                    background: meta.color + "18",
+                    border: `1px solid ${meta.color}44`,
+                    borderRadius: "999px",
+                    padding: "1px 8px",
+                    marginBottom: n > 0 ? ".4rem" : 0,
+                }}
+            >
+                {meta.level}
+            </div>
+            {n > 0 && (
                 <div
                     style={{
                         display: "flex",
                         alignItems: "center",
                         gap: ".5rem",
-                        marginTop: ".5rem",
                     }}
                 >
                     <Bar pct={rate} color={meta.color} />
@@ -96,11 +145,11 @@ function WorldRow({ meta, data }) {
                         style={{
                             fontFamily: "'Nunito',sans-serif",
                             fontSize: ".7rem",
-                            color: "#6b4e2a",
+                            color: "#7a5c3a",
                             whiteSpace: "nowrap",
                         }}
                     >
-                        {rate}% · {n} défis · ~{avg} essai{avg > 1 ? "s" : ""}
+                        {rate}% · {avg} essai{avg !== 1 ? "s" : ""}
                     </span>
                 </div>
             )}
@@ -108,102 +157,23 @@ function WorldRow({ meta, data }) {
     );
 }
 
-function SenseBreakdown({ results }) {
-    const byS = {};
-    results.forEach((r) => {
-        const s = WORLD5_CHALLENGES[r.challengeIndex]?.sense;
-        if (!s) return;
-        byS[s] = byS[s] ?? { ok: 0, n: 0 };
-        byS[s].n++;
-        if (r.success) byS[s].ok++;
-    });
-    const entries = Object.entries(byS);
-    if (!entries.length) return null;
-    return (
-        <div
-            style={{
-                padding: ".875rem 1.25rem",
-                borderRadius: "1rem",
-                background: "#fff",
-                border: "1.5px solid #fbcfe8",
-                marginTop: ".5rem",
-            }}
-        >
-            <p
-                style={{
-                    fontFamily: "'Baloo 2',sans-serif",
-                    fontWeight: 700,
-                    color: "#2d1a08",
-                    fontSize: ".8rem",
-                    margin: "0 0 .625rem",
-                }}
-            >
-                🎯 Détail par sens — Le Grand Festival
-            </p>
-            <div
-                style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: ".425rem",
-                }}
-            >
-                {entries.map(([sense, { ok, n }]) => {
-                    const m = SENSE_META[sense] ?? {
-                        label: sense,
-                        color: "#9c7c5a",
-                    };
-                    return (
-                        <div
-                            key={sense}
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: ".5rem",
-                            }}
-                        >
-                            <span
-                                style={{
-                                    fontFamily: "'Nunito',sans-serif",
-                                    fontSize: ".72rem",
-                                    color: "#5c3d1a",
-                                    width: "5rem",
-                                    flexShrink: 0,
-                                }}
-                            >
-                                {m.label}
-                            </span>
-                            <Bar
-                                pct={Math.round((ok / n) * 100)}
-                                color={m.color}
-                            />
-                            <span
-                                style={{
-                                    fontFamily: "'Nunito',sans-serif",
-                                    fontSize: ".7rem",
-                                    color: "#7a5c3a",
-                                    whiteSpace: "nowrap",
-                                }}
-                            >
-                                {ok}/{n}
-                            </span>
-                        </div>
-                    );
-                })}
-            </div>
-        </div>
-    );
-}
+// ── Composant principal ──────────────────────────────────────────────────────
 
 /**
  * Tableau de bord enseignant — lit la progression depuis localStorage.
- * Résumé global + stats par monde + décomposition par sens (Monde 5).
- * La section "Détail par sens" n'apparaît que si world5.results est non vide
- * et que le champ `sense` est présent dans WORLD5_CHALLENGES.
+ *
+ * Sprint 1 :
+ * - Badge niveau programme dans chaque WorldRow
+ * - Section dépliable "À propos des programmes" (AboutPrograms)
+ * - Alerte de transition rentrée 2025 si aucune progression
+ *
  * @param {{ onClose?: function }} props
  */
 function TeacherDashboard({ onClose }) {
     const { gameState, resetGame } = useGameProgression();
     const { totalStars, worlds } = gameState;
+    const [aboutOpen, setAboutOpen] = useState(false);
+
     const allR = worlds.flatMap((w) => w.results);
     const done = worlds.filter((w) => w.stars > 0).length;
     const gRate = allR.length
@@ -228,13 +198,20 @@ function TeacherDashboard({ onClose }) {
                 background: "linear-gradient(160deg,#fdf6ec 0%,#fef9ec 100%)",
             }}
         >
-            <div style={{ maxWidth: "36rem", margin: "0 auto" }}>
+            <div
+                style={{
+                    maxWidth: "36rem",
+                    margin: "0 auto",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: ".75rem",
+                }}
+            >
                 <header
                     style={{
                         display: "flex",
                         alignItems: "flex-start",
                         justifyContent: "space-between",
-                        marginBottom: "1.5rem",
                     }}
                 >
                     <div>
@@ -281,12 +258,33 @@ function TeacherDashboard({ onClose }) {
                     )}
                 </header>
 
+                {allR.length === 0 && (
+                    <div
+                        style={{
+                            background: "#fffbeb",
+                            border: "1.5px solid #fcd34d",
+                            borderRadius: "1rem",
+                            padding: ".75rem 1rem",
+                            fontFamily: "'Nunito',sans-serif",
+                            fontSize: ".78rem",
+                            color: "#92400e",
+                            lineHeight: 1.5,
+                        }}
+                    >
+                        <strong>⚠️ Note de transition — rentrée 2025</strong>
+                        <br />
+                        Les élèves actuels de CM1/CM2 n'ont pas suivi le
+                        programme de cycle 2 rénové. Le Monde 1 peut constituer
+                        leur première rencontre avec les fractions simples — ne
+                        pas le passer en accéléré.
+                    </div>
+                )}
+
                 <div
                     style={{
                         display: "grid",
                         gridTemplateColumns: "1fr 1fr 1fr",
                         gap: ".625rem",
-                        marginBottom: "1.25rem",
                     }}
                 >
                     {[
@@ -348,13 +346,13 @@ function TeacherDashboard({ onClose }) {
                     <SenseBreakdown results={world5.results} />
                 )}
 
-                <div
-                    style={{
-                        textAlign: "center",
-                        marginTop: "2rem",
-                        paddingBottom: "1.5rem",
-                    }}
-                >
+                <AboutPrograms
+                    open={aboutOpen}
+                    onToggle={() => setAboutOpen((o) => !o)}
+                    worldsMeta={WORLDS_META}
+                />
+
+                <div style={{ textAlign: "center", paddingBottom: "1.5rem" }}>
                     <button
                         onClick={handleReset}
                         style={{
