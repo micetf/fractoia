@@ -3,8 +3,8 @@ import { useGameProgression } from "../../hooks/useGameProgression.js";
 import ProgressStars from "../ui/ProgressStars.jsx";
 import SenseBreakdown from "../ui/SenseBreakdown.jsx";
 import AboutPrograms from "../ui/AboutPrograms.jsx";
-
-// ── Données programmes BO n°16, 2025 ────────────────────────────────────────
+import { WORLD2_CHALLENGES } from "../../data/challenges/world2.js";
+import { WORLD5_CHALLENGES } from "../../data/challenges/world5.js";
 
 const WORLDS_META = [
     {
@@ -19,7 +19,8 @@ const WORLDS_META = [
         label: "🔨 L'Atelier de Koro",
         color: "#f97316",
         level: "CM1 (unitaire) · CM2 (non-unitaire)",
-        attendu: "Fraction-opérateur · Unitaire CM1, non-unitaire CM2",
+        attendu:
+            "Fraction-mesure puis opérateur · Unitaire CM1, non-unitaire CM2",
     },
     {
         id: 3,
@@ -43,8 +44,6 @@ const WORLDS_META = [
         attendu: "Tous les sens · Sans appui systématique",
     },
 ];
-
-// ── Utilitaires ──────────────────────────────────────────────────────────────
 
 const calcStats = (r) => {
     if (!r.length) return { rate: 0, avg: 0, n: 0 };
@@ -74,8 +73,6 @@ const Bar = ({ pct, color }) => (
         />
     </div>
 );
-
-// ── WorldRow ─────────────────────────────────────────────────────────────────
 
 function WorldRow({ meta, data }) {
     const { rate, avg, n } = calcStats(data.results);
@@ -157,16 +154,10 @@ function WorldRow({ meta, data }) {
     );
 }
 
-// ── Composant principal ──────────────────────────────────────────────────────
-
 /**
- * Tableau de bord enseignant — lit la progression depuis localStorage.
- *
- * Sprint 1 :
- * - Badge niveau programme dans chaque WorldRow
- * - Section dépliable "À propos des programmes" (AboutPrograms)
- * - Alerte de transition rentrée 2025 si aucune progression
- *
+ * Tableau de bord enseignant.
+ * Sprint 1 : badge niveau, AboutPrograms, alerte transition.
+ * Sprint 3 : SenseBreakdown généralisé — remonte "mesure" pour le Monde 2.
  * @param {{ onClose?: function }} props
  */
 function TeacherDashboard({ onClose }) {
@@ -179,16 +170,12 @@ function TeacherDashboard({ onClose }) {
     const gRate = allR.length
         ? Math.round((allR.filter((r) => r.success).length / allR.length) * 100)
         : 0;
+    const world2 = worlds.find((w) => w.worldId === 2);
     const world5 = worlds.find((w) => w.worldId === 5);
-
-    const handleReset = () => {
-        if (
-            window.confirm(
-                "Effacer toute la progression ? Cette action est irréversible."
-            )
-        )
-            resetGame();
-    };
+    const handleReset = () =>
+        window.confirm(
+            "Effacer toute la progression ? Cette action est irréversible."
+        ) && resetGame();
 
     return (
         <div
@@ -342,8 +329,19 @@ function TeacherDashboard({ onClose }) {
                     })}
                 </div>
 
+                {world2?.results?.length > 0 && (
+                    <SenseBreakdown
+                        results={world2.results}
+                        challenges={WORLD2_CHALLENGES}
+                        title="🔨 Atelier de Koro — sens mesure vs opérateur"
+                    />
+                )}
                 {world5?.results?.length > 0 && (
-                    <SenseBreakdown results={world5.results} />
+                    <SenseBreakdown
+                        results={world5.results}
+                        challenges={WORLD5_CHALLENGES}
+                        title="🎪 Grand Festival — détail par sens"
+                    />
                 )}
 
                 <AboutPrograms

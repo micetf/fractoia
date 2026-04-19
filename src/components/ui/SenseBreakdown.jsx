@@ -1,5 +1,3 @@
-import { WORLD5_CHALLENGES } from "../../data/challenges/world5.js";
-
 const SENSE_META = {
     partage: { label: "Partage", color: "#f59e0b" },
     mesure: { label: "Mesure", color: "#3b82f6" },
@@ -24,13 +22,21 @@ const Bar = ({ pct, color }) => (
 );
 
 /**
- * Décomposition des résultats du Monde 5 par sens de la fraction.
- * Visible dans le TeacherDashboard si world5.results est non vide.
+ * Décomposition des résultats d'un monde par sens de la fraction.
  *
- * @param {{ results: Array }} props
+ * Sprint 3 — généralisé : accepte `challenges` en prop au lieu d'importer
+ * WORLD5_CHALLENGES en dur. Fonctionne pour tout monde ayant un champ `sense`
+ * dans ses défis (actuellement Monde 2 et Monde 5).
+ *
+ * @param {Object}   props
+ * @param {Array}    props.results    - Résultats enregistrés par useGameProgression
+ * @param {Array}    props.challenges - Tableau de défis du monde (avec champ `sense`)
+ * @param {string}   props.title      - Titre de la section
  */
-function SenseBreakdown({ results }) {
-    const senses = [...new Set(WORLD5_CHALLENGES.map((c) => c.sense))];
+function SenseBreakdown({ results, challenges, title }) {
+    const senses = [...new Set(challenges.map((c) => c.sense))].filter(Boolean);
+
+    if (!senses.length) return null;
 
     return (
         <div
@@ -50,7 +56,7 @@ function SenseBreakdown({ results }) {
                     margin: "0 0 .6rem",
                 }}
             >
-                🎪 Grand Festival — détail par sens
+                {title}
             </p>
             <div
                 style={{
@@ -61,7 +67,7 @@ function SenseBreakdown({ results }) {
             >
                 {senses.map((sense) => {
                     const sub = results.filter(
-                        (_, i) => WORLD5_CHALLENGES[i]?.sense === sense
+                        (_, i) => challenges[i]?.sense === sense
                     );
                     const ok = sub.filter((r) => r.success).length;
                     const n = sub.length;

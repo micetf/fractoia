@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import NumberLine from "../ui/NumberLine.jsx";
 import FractionDisplay from "../ui/FractionDisplay.jsx";
+import MeasureRuler from "../ui/MeasureRuler.jsx";
 import FeedbackToast from "../ui/FeedbackToast.jsx";
 import ProgressStars from "../ui/ProgressStars.jsx";
 import { useFeedback } from "../../hooks/useFeedback.js";
@@ -23,24 +24,22 @@ const BTN_VALIDATE = btn("#f59e0b");
 const BTN_NEXT = btn("#10b981", "#fff");
 const BTN_RESET = btn("#f59e0b", "#1e1b4b", "1.5rem");
 
-/** Formate un nombre décimal en notation française (ex. 1.5 → "1,5"). */
 const fmt = (n) =>
     Number.isInteger(n)
         ? String(n)
         : n.toFixed(2).replace(".", ",").replace(/0$/, "");
 
 /**
- * Monde 2 "L'Atelier de Koro" — sens fraction-opérateur.
+ * Monde 2 "L'Atelier de Koro" — fraction-mesure (palier 0) et fraction-opérateur.
  *
- * Mécanique : l'élève voit l'équation `num/den × total unit = ?`
- * et place le résultat sur la droite numérique.
- * La cible est `(num/den) × total`, calculée par useOperatorChallenge.
+ * Sprint 3 — affichage conditionnel selon `challenge.sense` :
+ * - `sense === "mesure"` → MeasureRuler (la fraction est le résultat du mesurage)
+ * - sans `sense`         → équation num/den × total = ? (comportement historique)
  *
- * showDecomposition=true : DecompBubble apparaît dès que le résultat > 1,
- * créant un pont naturel avec le Monde 3 (fraction-magnitude).
+ * useOperatorChallenge reste inchangé : pour les défis mesure (total=1),
+ * target = (num/den) × 1 = num/den, ce qui est correct.
  *
- * @param {Object}   props
- * @param {function} [props.onComplete]
+ * @param {{ onComplete?: function }} props
  */
 function WorldWorkshop({ onComplete }) {
     const [answer, setAnswer] = useState(null);
@@ -52,6 +51,8 @@ function WorldWorkshop({ onComplete }) {
         useOperatorChallenge(WORLD2_CHALLENGES);
     const { recordResult } = useGameProgression();
 
+    const isMesure = challenge?.sense === "mesure";
+
     const handleAnswer = useCallback(
         (val) => {
             if (!showCorrection) setAnswer(val);
@@ -61,7 +62,7 @@ function WorldWorkshop({ onComplete }) {
 
     const handleValidate = useCallback(() => {
         if (answer === null) {
-            showHint("Clique sur la règle pour placer ta mesure !");
+            showHint("Clique sur la demi-droite pour placer ta réponse !");
             return;
         }
         const { correct, attempts, showHint: needHint } = check(answer);
@@ -72,12 +73,17 @@ function WorldWorkshop({ onComplete }) {
             recordResult(2, index, true, attempts);
             showSuccess(
                 attempts === 1
-                    ? "Parfait ! Bonne mesure du premier coup ! ⭐⭐⭐"
+                    ? "Parfait ! Bonne réponse du premier coup ! ⭐⭐⭐"
                     : `Bravo ! Trouvé en ${attempts} essais.`
             );
         } else {
             if (needHint) showHint(`${challenge.emoji} ${challenge.hint}`);
-            else showError("Pas tout à fait… Relis bien la mesure totale !");
+            else
+                showError(
+                    isMesure
+                        ? "Pas tout à fait… Regarde bien la règle !"
+                        : "Pas tout à fait… Relis bien la mesure totale !"
+                );
             setAnswer(null);
         }
     }, [
@@ -85,6 +91,7 @@ function WorldWorkshop({ onComplete }) {
         check,
         challenge,
         index,
+        isMesure,
         recordResult,
         showSuccess,
         showError,
@@ -97,7 +104,6 @@ function WorldWorkshop({ onComplete }) {
         setStarsEarned(0);
         next();
     }, [next]);
-
     const handleReset = useCallback(() => {
         setAnswer(null);
         setShowCorrection(false);
@@ -140,8 +146,8 @@ function WorldWorkshop({ onComplete }) {
                             marginBottom: "1.5rem",
                         }}
                     >
-                        Tu maîtrises la fraction-opérateur. La Route des Étoiles
-                        t'attend !
+                        Tu maîtrises la fraction-mesure et la
+                        fraction-opérateur. La Route des Étoiles t'attend !
                     </p>
                     <div
                         style={{
@@ -170,7 +176,7 @@ function WorldWorkshop({ onComplete }) {
                 minHeight: "100vh",
                 padding: "1.5rem 1rem",
                 background:
-                    "linear-gradient(160deg, #fffbeb 0%, #fef3c7 55%, #e0f2fe 100%)",
+                    "linear-gradient(160deg, #fffbeb 0%, #fef3c7 55%, #fde68a 100%)",
             }}
         >
             <header
@@ -203,23 +209,8 @@ function WorldWorkshop({ onComplete }) {
                             margin: "0.2rem 0 0",
                         }}
                     >
-                        Monde 2 · Fraction-opérateur
+                        Défi {index + 1} / {total}
                     </p>
-                </div>
-                <div
-                    style={{
-                        fontFamily: "'Nunito', sans-serif",
-                        fontSize: "0.875rem",
-                        color: "#9c6b30",
-                        display: "flex",
-                        gap: "0.2rem",
-                        alignItems: "center",
-                    }}
-                >
-                    <span>Défi</span>
-                    <strong style={{ color: "#5c3d1a" }}>{index + 1}</strong>
-                    <span>/</span>
-                    <span>{total}</span>
                 </div>
             </header>
 
@@ -259,93 +250,117 @@ function WorldWorkshop({ onComplete }) {
                         </p>
                     </div>
 
-                    {/* Équation fraction-opérateur : num/den × total unit = ? */}
-                    <div
-                        style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            gap: "0.6rem",
-                            marginBottom: "1.25rem",
-                            flexWrap: "wrap",
-                        }}
-                    >
-                        <FractionDisplay
-                            numerator={challenge.num}
-                            denominator={challenge.den}
-                            size="lg"
-                        />
-                        <span
-                            style={{
-                                fontFamily: "'Baloo 2', sans-serif",
-                                fontSize: "2rem",
-                                fontWeight: 800,
-                                color: "#b45309",
-                            }}
-                        >
-                            ×
-                        </span>
-                        <div style={{ textAlign: "center", lineHeight: 1 }}>
+                    {/* Affichage conditionnel selon le sens */}
+                    {isMesure ? (
+                        /* Sens mesure : règle SVG + fraction */
+                        <div style={{ marginBottom: "1.25rem" }}>
+                            <MeasureRuler
+                                numerator={challenge.num}
+                                denominator={challenge.den}
+                                unit={challenge.unit}
+                            />
                             <div
                                 style={{
-                                    fontFamily: "'Baloo 2', sans-serif",
-                                    fontSize: "2.5rem",
-                                    fontWeight: 800,
-                                    color: "#5c3d1a",
+                                    textAlign: "center",
+                                    marginTop: "0.5rem",
                                 }}
                             >
-                                {challenge.total}
-                            </div>
-                            <div
-                                style={{
-                                    fontFamily: "'Nunito', sans-serif",
-                                    fontSize: "0.75rem",
-                                    color: "#9c6b30",
-                                    fontWeight: 600,
-                                }}
-                            >
-                                {challenge.unit}
+                                <FractionDisplay
+                                    numerator={challenge.num}
+                                    denominator={challenge.den}
+                                    size="lg"
+                                />
                             </div>
                         </div>
-                        <span
+                    ) : (
+                        /* Sens opérateur : équation num/den × total = ? */
+                        <div
                             style={{
-                                fontFamily: "'Baloo 2', sans-serif",
-                                fontSize: "2rem",
-                                fontWeight: 800,
-                                color: "#b45309",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                gap: "0.6rem",
+                                marginBottom: "1.25rem",
+                                flexWrap: "wrap",
                             }}
                         >
-                            =
-                        </span>
-                        <div style={{ textAlign: "center", lineHeight: 1 }}>
-                            <div
+                            <FractionDisplay
+                                numerator={challenge.num}
+                                denominator={challenge.den}
+                                size="lg"
+                            />
+                            <span
                                 style={{
                                     fontFamily: "'Baloo 2', sans-serif",
-                                    fontSize: "2.5rem",
+                                    fontSize: "2rem",
                                     fontWeight: 800,
-                                    color: showCorrection
-                                        ? "#059669"
-                                        : "#d97706",
+                                    color: "#b45309",
                                 }}
                             >
-                                {showCorrection ? fmt(target) : "?"}
-                            </div>
-                            {showCorrection && (
+                                ×
+                            </span>
+                            <div style={{ textAlign: "center", lineHeight: 1 }}>
+                                <div
+                                    style={{
+                                        fontFamily: "'Baloo 2', sans-serif",
+                                        fontSize: "2.5rem",
+                                        fontWeight: 800,
+                                        color: "#5c3d1a",
+                                    }}
+                                >
+                                    {challenge.total}
+                                </div>
                                 <div
                                     style={{
                                         fontFamily: "'Nunito', sans-serif",
                                         fontSize: "0.75rem",
-                                        color: "#059669",
+                                        color: "#9c6b30",
                                         fontWeight: 600,
                                     }}
                                 >
                                     {challenge.unit}
                                 </div>
-                            )}
+                            </div>
+                            <span
+                                style={{
+                                    fontFamily: "'Baloo 2', sans-serif",
+                                    fontSize: "2rem",
+                                    fontWeight: 800,
+                                    color: "#b45309",
+                                }}
+                            >
+                                =
+                            </span>
+                            <div style={{ textAlign: "center", lineHeight: 1 }}>
+                                <div
+                                    style={{
+                                        fontFamily: "'Baloo 2', sans-serif",
+                                        fontSize: "2.5rem",
+                                        fontWeight: 800,
+                                        color: showCorrection
+                                            ? "#059669"
+                                            : "#d97706",
+                                    }}
+                                >
+                                    {showCorrection ? fmt(target) : "?"}
+                                </div>
+                                {showCorrection && (
+                                    <div
+                                        style={{
+                                            fontFamily: "'Nunito', sans-serif",
+                                            fontSize: "0.75rem",
+                                            color: "#059669",
+                                            fontWeight: 600,
+                                        }}
+                                    >
+                                        {challenge.unit}
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                    </div>
+                    )}
 
-                    {/* Droite numérique — max = total, décomposition si résultat > 1 */}
+                    {/* Demi-droite */}
                     <div style={{ marginBottom: "0.5rem" }}>
                         <NumberLine
                             min={0}
