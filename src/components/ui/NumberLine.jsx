@@ -18,7 +18,7 @@ const VIEW_H = 110;
 const PAD = 44;
 
 /**
- * Droite numérique SVG interactive — pièce maîtresse de FRACTOÏA.
+ * Demi-droite graduée SVG interactive — pièce maîtresse de FRACTOÏA.
  *
  * La droite s'étend toujours jusqu'à `max`, rendant les fractions > 1
  * visibles dans la continuité des entiers sans rupture conceptuelle.

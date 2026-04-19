@@ -1,106 +1,35 @@
-# 🔬 Synthèse de recherche
+# FRACTOÏA — ROADMAP
 
-## I. Didactique des fractions — ce que dit la recherche
-
-### Les cinq sens de la fraction (Brousseau, Coulange & Train)
-
-Les travaux en didactique distinguent plusieurs acceptions possibles des fractions au cycle 3 : la fraction-partage (partage de l'unité), la fraction-mesure (mesure d'une grandeur), la fraction-commensuration, et la fraction-quotient — cette dernière acception étant relativement oubliée dans le curriculum français.
-
-Pour les programmes cycle 3, on distingue ainsi la **fraction-nombre** (3/4 est un nombre entre 0 et 1 à situer sur une droite graduée), la **fraction-opérateur** (prendre les 3/4 d'une mesure ou d'une quantité, par exemple les 3/4 de 60 cm) et la **fraction-division/quotient** (3/4 = 3 divisé par 4).
-
-### Le piège de la conception bipartite
-
-La recherche identifie une conception intuitive au cœur des difficultés des élèves : la fraction comprise comme une **structure bipartite** (a/b, c'est "a sur b"). Cette conception est renforcée par les choix didactiques qui alignent la forme a/b sur des contextes qui convoquent uniquement le sens parties/tout. Or, penser la fraction comme une **magnitude** (une grandeur mesurable sur une droite) est un levier essentiel pour dépasser ces limites.
-
-### Le mur des fractions supérieures à l'unité
-
-Les fractions supérieures à 1 représentent un obstacle majeur. Les élèves en difficulté avec cette notion ont tendance à bloquer car leur conception de la fraction comme "partie d'un tout" rend inconcevable qu'une fraction puisse dépasser l'entier. La conception bipartite s'avère particulièrement limitante ici : il est essentiel d'identifier ces conceptions intuitives pour mettre ensuite en place un travail de conceptualisation.
-
-### Ce qui fonctionne didactiquement
-
-La résolution de problèmes, bien qu'elle soit incitée pour les autres activités mathématiques du cycle 3, reste marginale dans l'étude des fractions dans le curriculum français — alors qu'elle constitue un levier fort pour favoriser le dépassement des conceptions intuitives.
-
-Le jeu pédagogique est pertinent pour acquérir des savoirs mathématiques : s'il est bien pensé, il permet la mise en place d'une démarche didactique mêlant recherche, exploration, élaboration de stratégies, **feedbacks immédiats** et **motivation intrinsèque**. L'erreur n'est pas pénalisante mais reste au sein du jeu, ce qui aide les élèves à "débloquer" leur compréhension des fractions supérieures à 1.
+> **Document de référence technique** — architecture, conventions de code, et backlog des sprints.  
+> Source de vérité unique. La base de connaissance Claude doit pointer vers ce fichier.
 
 ---
 
-## II. André Tricot et le numérique éducatif — les principes qui guident la conception
+## État du projet
 
-Tricot est une référence incontournable sur le numérique éducatif en France, notamment pour son ouvrage *Apprendre avec le numérique* (co-écrit avec Franck Amadieu). Sa position de fond est que **le numérique est un outil**, pas une solution magique : c'est la pédagogie qui doit être mise au centre.
+**Version actuelle** : 5 mondes jouables, TeacherDashboard, unlock inter-monde.  
+**Prochaine étape** : Sprint 0 → aligner la documentation et les métadonnées sur les programmes BO n°16, 2025.
 
-### La charge cognitive — trois types à maîtriser
+### Progression historique
 
-Tricot distingue trois types de charges pour l'élève en activité : la **charge essentielle** (les ressources accordées à la situation d'apprentissage elle-même), la **charge intrinsèque** (les ressources accordées à la réalisation de la tâche), et la **charge extrinsèque** (les informations parasites qui gênent — surcharge des supports, détails inutiles). Parfois la charge essentielle disparaît car l'élève est focalisé sur les mauvaises choses.
-
-### Ce qui fonctionne vraiment avec le numérique
-
-Tricot et Amadieu confirment que l'élève apprend mieux quand il est **actif**, qu'il **pratique**, et qu'il **reçoit des réponses en retour de ses erreurs**. Le jeu sérieux est une des voies pour y arriver, mais pour qu'un apprentissage efficace ait lieu, il faut que l'activité se déroule dans un **scénario pédagogique bien conçu**.
-
----
-
-# 🎮 FRACTOÏA — Architecture implémentée
-
-## Vision générale
-
-> Un jeu d'aventure narratif à 5 mondes progressifs dans lequel un·e explorateur·rice construit sa maîtrise des fractions — jusqu'aux fractions supérieures à l'unité qui deviennent la clé du monde final.
+| Sprint | Contenu | Statut |
+|---|---|---|
+| 1 | Socle technique · `NumberLine` · hooks de base | ✅ Terminé |
+| 2 | `WorldFarm` · `useFractionChallenge` · `FractionBar` | ✅ Terminé |
+| 3 | `WorldRoad` · fraction-magnitude · fractions > 1 | ✅ Terminé |
+| 4 | `WorldWorkshop` · `WorldMarket` · `WorldMap` (île SVG) | ✅ Terminé |
+| 5 | `WorldFestival` · `TeacherDashboard` · unlock inter-monde | ✅ Terminé |
 
 ---
 
-## Architecture des mondes et sens travaillés
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  MONDE 1 : "La Ferme de Mila"  🌾                   ✅          │
-│  Sens : fraction-partage (fractions ≤ 1, dén. ≤ 8)             │
-│  Mécaniques : FractionBar + droite numérique 0→2               │
-│  Hook : useFractionChallenge                                    │
-├─────────────────────────────────────────────────────────────────┤
-│  MONDE 2 : "L'Atelier de Koro"  🔨                  ✅          │
-│  Sens : fraction-opérateur (num/den × total)                    │
-│  Mécaniques : équation num/den × total = ? + droite             │
-│  Hook : useOperatorChallenge  (target = num/den × total)        │
-├─────────────────────────────────────────────────────────────────┤
-│  MONDE 3 : "La Route des Étoiles"  ⭐ ← PIVOT > 1  ✅          │
-│  Sens : fraction comme magnitude sur droite graduée             │
-│  Mécaniques : droite 0→4, DecompBubble si valeur > 1           │
-│  Hook : useFractionChallenge                                    │
-├─────────────────────────────────────────────────────────────────┤
-│  MONDE 4 : "Le Marché de Sao"  🏪                   ✅          │
-│  Sens : fraction-quotient (objects ÷ people = num/den)          │
-│  Mécaniques : équation objects ÷ people + droite                │
-│  Hook : useFractionChallenge                                    │
-├─────────────────────────────────────────────────────────────────┤
-│  MONDE 5 : "Le Grand Festival"  🎪                  ✅          │
-│  Sens : TOUS (partage, mesure, magnitude, quotient)             │
-│  Mécaniques : dispatcher par champ `sense`, badge discret       │
-│  Hook : useFractionChallenge                                    │
-└─────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## Ciblage programmes cycle 3 — BO n°16, avril 2025
-
-| Monde | Titre | Niveau cible | Attendu officiel |
-|---|---|---|---|
-| 1 🌾 | La Ferme de Mila | CE2-révision / CM1 P1 | Reconnaître et nommer des fractions simples (dén. ≤ 8) ; placer une fraction ≤ 1 sur une demi-droite graduée |
-| 2 🔨 | L'Atelier de Koro | CM1 (unitaire) · CM2 (non-unitaire) | Utiliser une fraction comme opérateur multiplicatif — unitaire au CM1 (un tiers de 12), non-unitaire au CM2 (deux tiers de 12) |
-| 3 ⭐ | La Route des Étoiles | CM1 — objectif central | Encadrer une fraction par deux entiers consécutifs ; placer une fraction > 1 sur une demi-droite graduée |
-| 4 🏪 | Le Marché de Sao | 6ème | Comprendre qu'une fraction est le résultat d'un partage équitable : a ÷ b = a/b |
-| 5 🎪 | Le Grand Festival | 6ème — synthèse de cycle | Mobiliser les quatre sens de la fraction sans appui systématique |
-
-> **Attendu absent de l'application (à couvrir dans les prochains sprints) :**  
-> - CM2 : additionner et soustraire des fractions ayant le même dénominateur *(→ Sprint 4)*  
-> - CM1 : fraction comme mesure d'une grandeur *(→ Sprint 3)*
-
-## Architecture technique complète
+## Architecture technique
 
 ```
 src/
 ├── components/
 │   ├── ui/
 │   │   ├── FractionBar.jsx          ✅  Barre partitionnée (sens partage)
-│   │   ├── NumberLine.jsx           ✅  Droite graduée interactive (SVG)
+│   │   ├── NumberLine.jsx           ✅  Demi-droite graduée interactive (SVG)
 │   │   ├── DecompBubble.jsx         ✅  Décomposition entier + fraction (> 1)
 │   │   ├── FractionDisplay.jsx      ✅  Notation fractionnaire verticale
 │   │   ├── FeedbackToast.jsx        ✅  Feedback immédiat animé
@@ -137,10 +66,25 @@ src/
 
 ---
 
-## Patterns établis (ne pas modifier)
+## Patterns établis — ne pas modifier
 
 ### Styles boutons
+
 Objet inline via fonction `btn(bg, fg, px)` dans chaque composant monde — contourne Preflight Tailwind v4 sur `<button>`.
+
+```js
+const btn = (bg, fg = "#2d1a08", px = "2rem") => ({
+    padding: `0.75rem ${px}`,
+    borderRadius: "1rem",
+    fontSize: "1.125rem",
+    fontWeight: 700,
+    backgroundColor: bg,
+    color: fg,
+    border: "none",
+    cursor: "pointer",
+    fontFamily: "'Baloo 2', sans-serif",
+});
+```
 
 ### Dispatcher FractionBar / showDecomposition
 
@@ -159,7 +103,7 @@ Objet inline via fonction `btn(bg, fg, px)` dans chaque composant monde — cont
 
 ### Unlock inter-monde
 
-`unlockWorld(nextId)` est appelé dans `App.jsx` via `handleComplete(nextWorldId)` au `onComplete` de chaque monde. Il est **idempotent** — sans effet si le monde est déjà déverrouillé.
+`unlockWorld(nextId)` est appelé dans `App.jsx` via `handleComplete(nextWorldId)`. **Idempotent** — sans effet si le monde est déjà déverrouillé.
 
 | Monde terminé | Déverrouille |
 |---|---|
@@ -169,11 +113,12 @@ Objet inline via fonction `btn(bg, fg, px)` dans chaque composant monde — cont
 | WorldMarket (4) | WorldFestival (5) |
 | WorldFestival (5) | — |
 
-### Conventions data/ (tous fichiers challenges/worldN.js)
+### Conventions data/ (tous fichiers `challenges/worldN.js`)
 
 - `context` : aucune notation fractionnaire — `FractionDisplay` affiche la fraction séparément
 - `hint` : écriture littérale uniquement ("trois demis", "cinq quarts"…), jamais de barre oblique
-- `sense` (world5 uniquement) : `'partage' | 'mesure' | 'magnitude' | 'quotient'` — non affiché à l'élève, exploité par `TeacherDashboard` et le dispatcher de `WorldFestival`
+- `level` : niveau programme cible — `"CE2-révision"` / `"CM1"` / `"CM2"` / `"6e"`
+- `sense` (world5 uniquement) : `'partage' | 'mesure' | 'magnitude' | 'quotient'` — non affiché à l'élève, exploité par `TeacherDashboard`
 
 ### Champs supplémentaires par monde
 
@@ -183,9 +128,7 @@ Objet inline via fonction `btn(bg, fg, px)` dans chaque composant monde — cont
 | world4.js | `objects`, `people` | `WorldMarket` affiche l'équation ÷ |
 | world5.js | `sense` | `WorldFestival` dispatcher + `TeacherDashboard` SenseBreakdown |
 
----
-
-## TeacherDashboard — structure
+### TeacherDashboard — structure
 
 | Bloc | Contenu |
 |---|---|
@@ -196,35 +139,278 @@ Objet inline via fonction `btn(bg, fg, px)` dans chaque composant monde — cont
 
 ---
 
-## Progression des sprints
+## Backlog — conformité programmes BO n°16, 2025
 
-| Sprint | Contenu | Statut |
+> **Contexte** : les programmes cycle 3 publiés au BO n°16 du 10 avril 2025 précisent des attendus absents ou mal ciblés dans la version actuelle. Les sprints ci-dessous les couvrent dans l'ordre de dépendance.
+
+### Vue d'ensemble
+
+```
+Sprint 0 ── Docs & métadonnées          ~2h   aucun risque       ← en cours
+Sprint 1 ── TeacherDashboard            ~3h   1 fichier
+Sprint 2 ── Encadrement CM1             ~5h   3 fichiers
+Sprint 3 ── Fraction-mesure CE2→CM1     ~4h   3 fichiers
+Sprint 4 ── Addition/soustraction CM2   ~6h   6 fichiers
+Sprint 5 ── Validation finale           ~3h   docs + lint
+                                       ───
+                                       ~23h total
+```
+
+**Ordre contraint** : Sprint 0 précède tout (les champs `level` et `sense` sont utilisés dès Sprint 1). Sprints 2 et 3 sont indépendants. Sprint 4 dépend de Sprint 3. Sprint 5 clôt.
+
+---
+
+### Sprint 0 — Fondations documentaires ← EN COURS
+
+**Objectif** : aligner tout ce qui ne touche pas au code avant de modifier quoi que ce soit.  
+**Effort** : ~2h. Aucun risque de régression.
+
+| # | Fichier | Action | Statut |
+|---|---|---|---|
+| 0.1 | `ROADMAP.md` | Ajouter tableau Monde / Niveau / Attendu officiel | ✅ Fait |
+| 0.2 | `README.md` | Ajouter section programmes 2025 + note de transition | ✅ Fait |
+| 0.3 | `src/components/ui/NumberLine.jsx` | `aria-label` : "droite numérique" → "demi-droite graduée" | ✅ Fait |
+| 0.4 | Tous les `data/challenges/worldN.js` | Ajouter champ `level` à chaque défi | ✅ Fait |
+
+**Critères d'acceptation**
+- Le tableau ROADMAP liste les 5 mondes avec niveau cible et attendu programme.
+- La note de transition rentrée 2025 est présente dans le README.
+- Aucune occurrence de "droite numérique" dans les `aria-label` des composants SVG.
+- Chaque défi possède un champ `level` cohérent avec les programmes.
+
+**Message de commit**
+```
+docs: aligner ROADMAP, README et métadonnées sur les programmes cycle 3 (BO n°16, 2025)
+
+- Ajoute champ `level` dans tous les fichiers data/challenges/
+- Remplace "droite numérique" par "demi-droite graduée" dans aria-label (NumberLine.jsx)
+- Ajoute tableau ciblage Monde/Niveau/Attendu dans ROADMAP.md
+- Ajoute section programmes 2025 + note de transition dans README.md
+```
+
+---
+
+### Sprint 1 — TeacherDashboard : lisibilité programme
+
+**Objectif** : qu'un enseignant ou un CPC lise d'un coup d'œil le niveau programme de chaque monde.  
+**Effort** : ~3h. 1 fichier modifié. Contrainte : composant ≤ 200 lignes.
+
+| # | Fichier | Action |
 |---|---|---|
-| 1 | Socle technique · NumberLine · hooks de base | ✅ Terminé |
-| 2 | WorldFarm · useFractionChallenge · FractionBar | ✅ Terminé |
-| 3 | WorldRoad · fraction-magnitude · fractions > 1 | ✅ Terminé |
-| 4 | WorldWorkshop · WorldMarket · WorldMap (île SVG) | ✅ Terminé |
-| 5 | WorldFestival · TeacherDashboard · unlock inter-monde | ✅ Terminé |
+| 1.1 | `src/components/layout/TeacherDashboard.jsx` | Ajouter bandeau `level` sous chaque nom de monde dans `WorldRow` |
+| 1.2 | `src/components/layout/TeacherDashboard.jsx` | Ajouter section dépliable "À propos des programmes" |
+| 1.3 | `src/components/layout/TeacherDashboard.jsx` | Ajouter alerte transition rentrée 2025 si aucune progression enregistrée |
+
+**Données à ajouter dans `WORLDS_META`**
+```js
+const WORLDS_META = [
+  { id: 1, label: "🌾 La Ferme de Mila",    color: "#f59e0b",
+    level: "CE2-révision / CM1 P1",
+    attendu: "Fraction-partage · Réactiver fraction < 1 (dén. ≤ 8)" },
+  { id: 2, label: "🔨 L'Atelier de Koro",   color: "#f97316",
+    level: "CM1 (palier 1) · CM2 (paliers 2–3)",
+    attendu: "Fraction-opérateur · Unitaire (CM1) puis non-unitaire (CM2)" },
+  { id: 3, label: "⭐ La Route des Étoiles", color: "#818cf8",
+    level: "CM1 — objectif central",
+    attendu: "Fractions > 1 · Placement sur demi-droite · Encadrement" },
+  { id: 4, label: "🏪 Le Marché de Sao",    color: "#34d399",
+    level: "6ème",
+    attendu: "Fraction-quotient · a ÷ b = a/b" },
+  { id: 5, label: "🎪 Le Grand Festival",   color: "#ec4899",
+    level: "6ème — synthèse de cycle",
+    attendu: "Tous les sens · Mobilisation sans appui systématique" },
+];
+```
+
+**Critères d'acceptation**
+- Chaque ligne de monde affiche un badge niveau coloré.
+- La section "À propos" est visible mais ne surcharge pas l'interface principale.
+- L'alerte de transition disparaît dès qu'une progression est enregistrée.
+
+**Message de commit**
+```
+feat(TeacherDashboard): afficher le niveau programme par monde
+
+- Ajoute champ level et attendu dans WORLDS_META
+- Affiche badge niveau sous chaque WorldRow
+- Ajoute section "À propos des programmes" (dépliable)
+- Ajoute alerte de transition rentrée 2025
+```
 
 ---
 
-## Principes Tricot intégrés
+### Sprint 2 — Encadrement d'une fraction (CM1 attendu manquant)
 
-| Principe | Implémentation |
+**Objectif** : couvrir l'attendu CM1 "encadrer une fraction par deux entiers consécutifs".  
+**Effort** : ~5h. 3 fichiers.
+
+**Rappel programme** : CM1 — Savoir encadrer une fraction par deux entiers consécutifs ; savoir placer une fraction ou la somme d'un nombre entier et d'une fraction inférieure à un sur une demi-droite graduée.
+
+**Flux pédagogique**
+```
+Phase 'bracket'
+  → BracketQuestion : "7/4 est entre ___ et ___ ?"
+  → Correct → phase 'place'
+  → Incorrect → feedback hint sans pénalité (principe Tricot)
+
+Phase 'place'
+  → NumberLine avec bornes visuellement marquées
+  → Validation habituelle
+```
+
+| # | Fichier | Action |
+|---|---|---|
+| 2.1 | `src/hooks/useFractionChallenge.js` | Ajouter état `phase` : `'bracket'` → `'place'` → `'done'` |
+| 2.2 | `src/components/ui/BracketQuestion.jsx` | Nouveau composant (≤ 150 lignes) |
+| 2.3 | `src/components/worlds/WorldRoad.jsx` | Intégrer `BracketQuestion` en phase `'bracket'` |
+| 2.4 | `src/data/challenges/world3.js` | Ajouter champ `bracket: [lower, upper]` à chaque défi |
+
+**Exemple de défi mis à jour**
+```js
+{ num: 7, den: 4, max: 3, bracket: [1, 2], level: "CM1", emoji: "🌟", … }
+```
+
+**Critères d'acceptation**
+- Question d'encadrement systématique avant la demi-droite dans WorldRoad.
+- Encadrement incorrect → feedback non punitif, nouvelle tentative possible.
+- Encadrement correct → demi-droite s'ouvre sans reset.
+- `BracketQuestion` ≤ 150 lignes · `useFractionChallenge` ≤ 80 lignes.
+
+**Message de commit**
+```
+feat(WorldRoad): ajouter la phase d'encadrement (attendu CM1 BO 2025)
+
+- Nouveau composant BracketQuestion
+- useFractionChallenge étendu avec état de phase
+- world3.js enrichi du champ bracket
+- Flux bracket → place conforme à l'attendu CM1
+```
+
+---
+
+### Sprint 3 — Fraction-mesure (CE2 → CM1, sens absent)
+
+**Objectif** : introduire la fraction comme mesure d'une grandeur, sens absent de l'application.  
+**Effort** : ~4h. 3 fichiers.
+
+**Distinction avec le sens opérateur**
+
+| Sens | Formulation type | Présent |
+|---|---|---|
+| Mesure | "Cette planche *mesure* 3/4 de mètre" | ❌ absent |
+| Opérateur | "Prendre *les* 3/4 d'une planche de 1 m" | ✅ Monde 2 |
+
+| # | Fichier | Action |
+|---|---|---|
+| 3.1 | `src/data/challenges/world2.js` | Ajouter 3 défis `sense: "mesure"` en palier 0, `level: "CM1"` |
+| 3.2 | `src/components/worlds/WorldWorkshop.jsx` | Affichage conditionnel selon `sense` (règle SVG vs équation) |
+| 3.3 | `src/components/ui/MeasureRuler.jsx` | Nouveau composant optionnel — règle SVG annotée (≤ 150 lignes) |
+
+**Exemple de défi mesure**
+```js
+{
+  num: 3, den: 4, total: 1, unit: "m", max: 1,
+  level: "CM1", sense: "mesure", emoji: "📐",
+  context: "Koro pose sa règle le long de la pièce de bois. " +
+           "Elle s'arrête à la troisième graduation sur quatre. " +
+           "Où se trouve l'extrémité de la planche sur la règle ?",
+  hint: "Trois quarts se trouve entre la moitié et 1 — " +
+        "à la troisième marque quand la règle est divisée en quatre.",
+}
+```
+
+**Critères d'acceptation**
+- Défis `mesure` présentés avant les défis `operateur-unitaire`.
+- Affichage WorldWorkshop adapté selon `sense` (pas d'équation `× total` pour mesure).
+- `TeacherDashboard` SenseBreakdown remonte `"mesure"` dans les stats du Monde 2.
+
+**Message de commit**
+```
+feat(WorldWorkshop): ajouter le sens fraction-mesure (CE2→CM1, BO 2025)
+
+- 3 défis mesure ajoutés en tête de world2.js
+- Affichage conditionnel selon sense dans WorldWorkshop
+- Nouveau composant MeasureRuler (règle SVG annotée)
+- SenseBreakdown TeacherDashboard couvre désormais le Monde 2
+```
+
+---
+
+### Sprint 4 — Addition de fractions de même dénominateur (CM2 absent)
+
+**Objectif** : couvrir l'attendu CM2 "additionner et soustraire des fractions de même dénominateur".  
+**Effort** : ~6h. 6 fichiers. Sprint le plus structurant.
+
+**Implémentation choisie** : Nouveau Monde 2bis "Le Grenier de Koro" — respecte la règle 1 monde = 1 sens sans alourdir WorldWorkshop.
+
+| # | Fichier | Action |
+|---|---|---|
+| 4.1 | `src/data/challenges/world2bis.js` | 6 défis addition/soustraction, même dénominateur, `level: "CM2"` |
+| 4.2 | `src/hooks/useAdditionChallenge.js` | Nouveau hook — cible = `(num1 ± num2) / den` |
+| 4.3 | `src/components/worlds/WorldGranary.jsx` | Nouveau monde (≤ 200 lignes) |
+| 4.4 | `src/components/ui/FractionEquation.jsx` | Affichage équation addition/soustraction |
+| 4.5 | `src/App.jsx` | Ajouter `WorldGranary` entre WorldWorkshop (2) et WorldRoad (3) |
+| 4.6 | `src/components/layout/WorldMap.jsx` | Ajouter nœud Monde 2bis |
+
+**Structure des défis**
+```js
+// Progression dans world2bis.js :
+// Palier 1 (1-2) : addition, résultat < 1
+// Palier 2 (3-4) : addition, résultat > 1 — pont avec WorldRoad
+// Palier 3 (5-6) : soustraction, résultat < 1
+{
+  num1: 1, num2: 2, den: 4, op: "+",
+  max: 2, level: "CM2", sense: "addition",
+  emoji: "🌾",
+  context: "Koro remplit un quart du sac de farine, puis encore deux quarts. " +
+           "Quelle fraction du sac a-t-il remplie en tout ?",
+  hint: "Un quart plus deux quarts, c'est trois quarts — " +
+        "additionne simplement les numérateurs.",
+}
+```
+
+**Critères d'acceptation**
+- Résultat correct = `(num1 ± num2) / den` calculé dans `useAdditionChallenge`.
+- `DecompBubble` visible si résultat > 1 (cohérence WorldRoad).
+- Monde déverrouillé après WorldWorkshop dans App.jsx.
+- `WorldGranary` ≤ 200 lignes · `useAdditionChallenge` ≤ 80 lignes.
+
+**Message de commit**
+```
+feat: ajouter Monde 2bis WorldGranary (addition fractions, CM2 BO 2025)
+
+- Nouveau fichier world2bis.js (6 défis addition/soustraction même dénominateur)
+- Nouveau hook useAdditionChallenge
+- Nouveau composant WorldGranary et FractionEquation
+- Intégration dans App.jsx et WorldMap
+- Unlock chain : WorldWorkshop → WorldGranary → WorldRoad
+```
+
+---
+
+### Sprint 5 — Validation finale et conformité globale
+
+**Objectif** : vérification croisée complète, mise à jour des docs, tag de version.  
+**Effort** : ~3h.
+
+| # | Action |
 |---|---|
-| Réduire la charge extrinsèque | Interface épurée : 1 fraction à la fois, pas de menus parasites |
-| Feedback immédiat | `FeedbackToast` dès la réponse, correction contextualisée |
-| Activité active | Clic sur la droite numérique SVG |
-| Scénario pédagogique | Histoire cohérente qui donne du sens à chaque défi |
-| Pas de punition | Erreur = information ; `showHint` à partir de 2 erreurs |
-| Éviter surcharge attentionnelle | Pas d'animations décoratives pendant les défis |
-| Rôle de l'enseignant | `TeacherDashboard` avec stats par monde et par sens |
+| 5.1 | Vérifier que tous les dénominateurs sont ≤ 20 (CM1), ≤ 60 (CM2) dans leurs mondes |
+| 5.2 | Vérifier que l'ordre des mondes dans `WorldMap` et `App.jsx` respecte la progression |
+| 5.3 | S'assurer que `WORLD2BIS_CHALLENGES` ne contient aucune notation fractionnaire dans `context` et `hint` |
+| 5.4 | Mettre à jour ce fichier `ROADMAP.md` avec l'architecture finale à 6 mondes |
+| 5.5 | Passer `pnpm lint` et corriger les avertissements |
 
----
+**Critères d'acceptation**
+- `pnpm build` passe sans erreur ni warning.
+- `TeacherDashboard` affiche 6 mondes avec leurs niveaux corrects.
+- Aucun défi ne contient de notation `a/b` dans `context` ou `hint`.
 
-## Références
+**Message de commit**
+```
+chore: validation conformité programmes 2025 et documentation finale
 
-- Brousseau & Brousseau (1987) — fraction-commensuration
-- Projet REPSAF / Pôle Pégase (2022) — fraction comme magnitude
-- Amadieu & Tricot (2014) — *Apprendre avec le numérique*
-- CSEN / Dehaene et al. (2022) — test de la ligne numérique
+- Vérification dénominateurs par niveau (CM1 ≤20, CM2 ≤60)
+- ROADMAP.md mis à jour architecture 6 mondes
+- Lint propre
+```
