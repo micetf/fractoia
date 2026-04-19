@@ -3,6 +3,7 @@ import { GameProgressionProvider } from "./hooks/useGameProgression.js";
 import { useGameProgression } from "./hooks/useGameProgression.js";
 import WorldFarm from "./components/worlds/WorldFarm.jsx";
 import WorldWorkshop from "./components/worlds/WorldWorkshop.jsx";
+import WorldGranary from "./components/worlds/WorldGranary.jsx";
 import WorldRoad from "./components/worlds/WorldRoad.jsx";
 import WorldMarket from "./components/worlds/WorldMarket.jsx";
 import WorldFestival from "./components/worlds/WorldFestival.jsx";
@@ -11,8 +12,10 @@ import TeacherDashboard from "./components/layout/TeacherDashboard.jsx";
 
 /**
  * Routeur interne — consomme le Context GameProgressionProvider.
- * Séparé de App pour que useGameProgression() soit appelé
- * à l'intérieur du Provider (règle des hooks React).
+ *
+ * Chaîne d'unlock :
+ *   WorldFarm (1) → WorldWorkshop (2) → WorldGranary (6)
+ *   → WorldRoad (3) → WorldMarket (4) → WorldFestival (5)
  */
 function AppRouter() {
     const [screen, setScreen] = useState("map");
@@ -21,10 +24,6 @@ function AppRouter() {
     const goMap = () => setScreen("map");
     const goTo = (id) => setScreen(id);
 
-    /**
-     * Termine un monde, déverrouille le suivant, retourne à la carte.
-     * @param {number} [nextWorldId]
-     */
     const handleComplete = (nextWorldId) => {
         if (nextWorldId) unlockWorld(nextWorldId);
         goMap();
@@ -33,7 +32,9 @@ function AppRouter() {
     if (screen === "farm")
         return <WorldFarm onComplete={() => handleComplete(2)} />;
     if (screen === "workshop")
-        return <WorldWorkshop onComplete={() => handleComplete(3)} />;
+        return <WorldWorkshop onComplete={() => handleComplete(6)} />;
+    if (screen === "granary")
+        return <WorldGranary onComplete={() => handleComplete(3)} />;
     if (screen === "road")
         return <WorldRoad onComplete={() => handleComplete(4)} />;
     if (screen === "market")
@@ -74,9 +75,7 @@ function AppRouter() {
 
 /**
  * Point d'entrée de FRACTOÏA.
- * GameProgressionProvider garantit une instance unique de useGameProgression
- * partagée entre App, WorldMap, TeacherDashboard et tous les mondes.
- * Élimine la désynchronisation entre useState indépendants.
+ * GameProgressionProvider garantit une instance unique de useGameProgression.
  */
 function App() {
     return (

@@ -4,7 +4,7 @@ import { useLocalStorage } from "./useLocalStorage.js";
 const INIT = {
     currentWorld: 1,
     totalStars: 0,
-    worlds: [1, 2, 3, 4, 5].map((id) => ({
+    worlds: [1, 2, 3, 4, 5, 6].map((id) => ({
         worldId: id,
         results: [],
         unlocked: id === 1,

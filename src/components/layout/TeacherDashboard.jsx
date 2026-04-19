@@ -4,6 +4,7 @@ import ProgressStars from "../ui/ProgressStars.jsx";
 import SenseBreakdown from "../ui/SenseBreakdown.jsx";
 import AboutPrograms from "../ui/AboutPrograms.jsx";
 import { WORLD2_CHALLENGES } from "../../data/challenges/world2.js";
+import { WORLD2BIS_CHALLENGES } from "../../data/challenges/world2bis.js";
 import { WORLD5_CHALLENGES } from "../../data/challenges/world5.js";
 
 const WORLDS_META = [
@@ -21,6 +22,13 @@ const WORLDS_META = [
         level: "CM1 (unitaire) · CM2 (non-unitaire)",
         attendu:
             "Fraction-mesure puis opérateur · Unitaire CM1, non-unitaire CM2",
+    },
+    {
+        id: 6,
+        label: "🫙 Le Grenier de Koro",
+        color: "#eab308",
+        level: "CM2",
+        attendu: "Addition et soustraction de fractions (même dénominateur)",
     },
     {
         id: 3,
@@ -171,6 +179,7 @@ function TeacherDashboard({ onClose }) {
         ? Math.round((allR.filter((r) => r.success).length / allR.length) * 100)
         : 0;
     const world2 = worlds.find((w) => w.worldId === 2);
+    const world6 = worlds.find((w) => w.worldId === 6);
     const world5 = worlds.find((w) => w.worldId === 5);
     const handleReset = () =>
         window.confirm(
@@ -275,8 +284,16 @@ function TeacherDashboard({ onClose }) {
                     }}
                 >
                     {[
-                        { icon: "⭐", val: `${totalStars}/15`, lbl: "Étoiles" },
-                        { icon: "🗺️", val: `${done}/5`, lbl: "Terminés" },
+                        {
+                            icon: "⭐",
+                            val: `${totalStars}/${WORLDS_META.length * 3}`,
+                            lbl: "Étoiles",
+                        },
+                        {
+                            icon: "🗺️",
+                            val: `${done}/${WORLDS_META.length}`,
+                            lbl: "Terminés",
+                        },
                         { icon: "🎯", val: `${gRate}%`, lbl: "Réussite" },
                     ].map(({ icon, val, lbl }) => (
                         <div
@@ -334,6 +351,13 @@ function TeacherDashboard({ onClose }) {
                         results={world2.results}
                         challenges={WORLD2_CHALLENGES}
                         title="🔨 Atelier de Koro — sens mesure vs opérateur"
+                    />
+                )}
+                {world6?.results?.length > 0 && (
+                    <SenseBreakdown
+                        results={world6.results}
+                        challenges={WORLD2BIS_CHALLENGES}
+                        title="🫙 Grenier de Koro — addition vs soustraction"
                     />
                 )}
                 {world5?.results?.length > 0 && (

@@ -1,13 +1,11 @@
 import WorldNode from "../ui/WorldNode.jsx";
 import { useGameProgression } from "../../hooks/useGameProgression.js";
 
-/**
- * @typedef {{ id: string, label: string, sub: string, emoji: string, worldId: number, x: number, y: number, comingSoon: boolean }} WorldEntry
- */
+/** @typedef {{ id: string, label: string, sub: string, emoji: string, worldId: number, x: number, y: number, comingSoon: boolean }} WorldEntry */
 
 /**
- * Configuration des 5 mondes.
- * x / y : position en % du conteneur (viewBox SVG 0 0 100 100).
+ * Sprint 4 — WorldGranary (2bis) ajouté entre Workshop (2) et Road (3).
+ * Position (38, 32) sur l'île ; PATH_D mis à jour pour passer par ce point.
  * @type {WorldEntry[]}
  */
 const WORLDS = [
@@ -29,6 +27,16 @@ const WORLDS = [
         worldId: 2,
         x: 28,
         y: 52,
+        comingSoon: false,
+    },
+    {
+        id: "granary",
+        label: "Le Grenier de Koro",
+        sub: "Fraction-addition",
+        emoji: "🫙",
+        worldId: 6,
+        x: 38,
+        y: 32,
         comingSoon: false,
     },
     {
@@ -65,7 +73,8 @@ const WORLDS = [
 
 const PATH_D =
     "M 15,78 C 20,65 24,58 28,52 " +
-    "C 36,36 43,25 50,16 " +
+    "C 31,44 34,38 38,32 " +
+    "C 42,24 46,19 50,16 " +
     "C 57,25 65,38 74,52 " +
     "C 71,60 67,69 62,78";
 
@@ -76,15 +85,8 @@ const ISLAND_D =
     "C 56,93 44,93 32,91 C 20,89 11,93 8,87 Z";
 
 /**
- * Hub de navigation principale — Carte des mondes de FRACTOÏA.
- *
- * Visuel : île fractale vue du ciel, chemin d'aventure entre les mondes.
- * La progression monte vers le sommet (Monde 3) puis redescend vers le Festival,
- * matérialisant l'élargissement progressif des fractions.
- *
- * @param {Object}            props
- * @param {string|null}       props.current  - Id du monde actif (surbrillance)
- * @param {function(string)}  props.onSelect - Callback de navigation
+ * Hub de navigation — carte des mondes de FRACTOÏA.
+ * @param {{ current?: string|null, onSelect: function(string) }} props
  */
 function WorldMap({ current, onSelect }) {
     const { gameState, getWorldProgress } = useGameProgression();
@@ -102,7 +104,6 @@ function WorldMap({ current, onSelect }) {
                 boxSizing: "border-box",
             }}
         >
-            {/* ── En-tête ── */}
             <header style={{ textAlign: "center", marginBottom: "1.25rem" }}>
                 <div style={{ fontSize: "2rem", marginBottom: "0.2rem" }}>
                     🗺️
@@ -149,7 +150,6 @@ function WorldMap({ current, onSelect }) {
                 </div>
             </header>
 
-            {/* ── Île ── */}
             <div
                 style={{
                     position: "relative",
@@ -221,6 +221,7 @@ function WorldMap({ current, onSelect }) {
                         strokeWidth="0.9"
                         opacity="0.45"
                     />
+                    {/* Pic sommet */}
                     <polygon
                         points="50,3 43.5,17 56.5,17"
                         fill="#94a3b8"
@@ -231,6 +232,7 @@ function WorldMap({ current, onSelect }) {
                         fill="#f1f5f9"
                         opacity="0.65"
                     />
+                    {/* Chemin pointillé */}
                     <path
                         d={PATH_D}
                         fill="none"
