@@ -4,6 +4,7 @@ import { useGameProgression } from "./hooks/useGameProgression.js";
 import WorldFarm from "./components/worlds/WorldFarm.jsx";
 import WorldWorkshop from "./components/worlds/WorldWorkshop.jsx";
 import WorldGranary from "./components/worlds/WorldGranary.jsx";
+import WorldBridge from "./components/worlds/WorldBridge.jsx";
 import WorldRoad from "./components/worlds/WorldRoad.jsx";
 import WorldMarket from "./components/worlds/WorldMarket.jsx";
 import WorldFestival from "./components/worlds/WorldFestival.jsx";
@@ -15,7 +16,7 @@ import TeacherDashboard from "./components/layout/TeacherDashboard.jsx";
  *
  * Chaîne d'unlock :
  *   WorldFarm (1) → WorldWorkshop (2) → WorldGranary (6)
- *   → WorldRoad (3) → WorldMarket (4) → WorldFestival (5)
+ *   → WorldBridge (7) → WorldRoad (3) → WorldMarket (4) → WorldFestival (5)
  */
 function AppRouter() {
     const [screen, setScreen] = useState("map");
@@ -34,7 +35,9 @@ function AppRouter() {
     if (screen === "workshop")
         return <WorldWorkshop onComplete={() => handleComplete(6)} />;
     if (screen === "granary")
-        return <WorldGranary onComplete={() => handleComplete(3)} />;
+        return <WorldGranary onComplete={() => handleComplete(7)} />;
+    if (screen === "bridge")
+        return <WorldBridge onComplete={() => handleComplete(3)} />;
     if (screen === "road")
         return <WorldRoad onComplete={() => handleComplete(4)} />;
     if (screen === "market")
