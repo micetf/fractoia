@@ -101,10 +101,19 @@ const ISLAND_D =
 
 /**
  * Hub de navigation — carte des mondes de FRACTOÏA.
+ *
+ * Architecture : div position:relative contient le SVG (île + chemin) et les
+ * WorldNode en overlay HTML absolu. Les coordonnées x/y (0-100) du tableau WORLDS
+ * correspondent directement aux pourcentages CSS sur ce conteneur.
+ * ⚠️ Ne jamais rendre les WorldNode à l'intérieur du <svg> — ce sont des <button>
+ * HTML qui ne se positionnent pas dans un contexte SVG.
+ *
  * @param {{ onSelect?: function(string): void }} props
  */
 function WorldMap({ onSelect }) {
     const { getWorldProgress } = useGameProgression();
+
+    const mapSize = "min(90vw, 480px)";
 
     return (
         <div
@@ -145,49 +154,62 @@ function WorldMap({ onSelect }) {
                 </p>
             </div>
 
-            {/* Carte SVG */}
-            <svg
-                viewBox="0 0 100 100"
+            {/*
+             * Conteneur position:relative — les WorldNode s'y ancrent en absolu.
+             * Le SVG et les nœuds HTML partagent exactement les mêmes dimensions.
+             */}
+            <div
                 style={{
-                    width: "min(90vw, 480px)",
-                    height: "min(90vw, 480px)",
-                    overflow: "visible",
+                    position: "relative",
+                    width: mapSize,
+                    height: mapSize,
                     filter: "drop-shadow(0 8px 32px rgba(0,0,0,0.35))",
                 }}
-                aria-label="Carte des mondes de FRACTOÏA"
             >
-                {/* Île */}
-                <path
-                    d={ISLAND_D}
-                    fill="#d4a574"
-                    stroke="#a0724a"
-                    strokeWidth="0.8"
-                />
+                {/* SVG — île + chemin uniquement, pas de nœuds ici */}
+                <svg
+                    viewBox="0 0 100 100"
+                    style={{ width: "100%", height: "100%", display: "block" }}
+                    aria-hidden="true"
+                >
+                    <path
+                        d={ISLAND_D}
+                        fill="#d4a574"
+                        stroke="#a0724a"
+                        strokeWidth="0.8"
+                    />
+                    <path
+                        d={PATH_D}
+                        fill="none"
+                        stroke="rgba(255,255,255,0.25)"
+                        strokeWidth="1.2"
+                        strokeLinecap="round"
+                        strokeDasharray="2 2"
+                    />
+                </svg>
 
-                {/* Chemin d'unlock animé */}
-                <path
-                    d={PATH_D}
-                    fill="none"
-                    stroke="rgba(255,255,255,0.25)"
-                    strokeWidth="1.2"
-                    strokeLinecap="round"
-                    strokeDasharray="2 2"
-                />
-
-                {/* Nœuds */}
+                {/* WorldNode — overlay HTML absolu, coordonnées en % */}
                 {WORLDS.map((w) => {
                     const progress = getWorldProgress(w.worldId);
                     return (
                         <WorldNode
                             key={w.id}
-                            world={w}
+                            emoji={w.emoji}
+                            label={w.label}
+                            sub={w.sub}
+                            comingSoon={w.comingSoon}
                             unlocked={progress?.unlocked ?? false}
                             stars={progress?.stars ?? 0}
-                            onSelect={onSelect}
+                            onClick={() => onSelect?.(w.id)}
+                            style={{
+                                left: `${w.x}%`,
+                                top: `${w.y}%`,
+                                transform: "translate(-50%, -50%)",
+                            }}
                         />
                     );
                 })}
-            </svg>
+            </div>
         </div>
     );
 }
