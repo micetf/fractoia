@@ -7,6 +7,10 @@ import { WORLD2_CHALLENGES } from "../../data/challenges/world2.js";
 import { WORLD2BIS_CHALLENGES } from "../../data/challenges/world2bis.js";
 import { WORLD5_CHALLENGES } from "../../data/challenges/world5.js";
 
+/**
+ * Sprint A : worldId 7 (Le Pont de Léna) ajouté entre Grenier (6) et Route (3).
+ * Les totaux étoiles/mondes sont calculés dynamiquement depuis WORLDS_META.length.
+ */
 const WORLDS_META = [
     {
         id: 1,
@@ -19,21 +23,27 @@ const WORLDS_META = [
         id: 2,
         label: "🔨 L'Atelier de Koro",
         color: "#f97316",
-        level: "CM1 (unitaire) · CM2 (non-unitaire)",
-        attendu:
-            "Fraction-mesure puis opérateur · Unitaire CM1, non-unitaire CM2",
+        level: "CM1 (unitaire) · CM2",
+        attendu: "Fraction-mesure puis opérateur",
     },
     {
         id: 6,
         label: "🫙 Le Grenier de Koro",
         color: "#eab308",
         level: "CM2",
-        attendu: "Addition et soustraction de fractions (même dénominateur)",
+        attendu: "Addition et soustraction (même dénominateur)",
+    },
+    {
+        id: 7,
+        label: "🌉 Le Pont de Léna",
+        color: "#818cf8",
+        level: "CM1 · CM2 · 6ème",
+        attendu: "Comparer des fractions · Établir des égalités",
     },
     {
         id: 3,
         label: "⭐ La Route des Étoiles",
-        color: "#818cf8",
+        color: "#6366f1",
         level: "CM1 — objectif central",
         attendu: "Fractions > 1 · Demi-droite · Encadrement",
     },
@@ -85,13 +95,14 @@ const Bar = ({ pct, color }) => (
 function WorldRow({ meta, data }) {
     const { rate, avg, n } = calcStats(data.results);
     const done = data.stars > 0;
+    const borderColor = done ? meta.color + "44" : "#e8cfa4";
     return (
         <div
             style={{
                 padding: ".875rem 1rem .875rem 1.25rem",
                 borderRadius: "1rem",
                 background: done ? "#fff" : "#fdf9f4",
-                border: `1.5px solid ${done ? meta.color + "44" : "#e8cfa4"}`,
+                border: `1.5px solid ${borderColor}`,
                 borderLeft: `4px solid ${done ? meta.color : "#e8cfa4"}`,
                 opacity: data.unlocked ? 1 : 0.4,
             }}
@@ -163,9 +174,7 @@ function WorldRow({ meta, data }) {
 }
 
 /**
- * Tableau de bord enseignant.
- * Sprint 1 : badge niveau, AboutPrograms, alerte transition.
- * Sprint 3 : SenseBreakdown généralisé — remonte "mesure" pour le Monde 2.
+ * Tableau de bord enseignant — FRACTOÏA.
  * @param {{ onClose?: function }} props
  */
 function TeacherDashboard({ onClose }) {
@@ -181,6 +190,7 @@ function TeacherDashboard({ onClose }) {
     const world2 = worlds.find((w) => w.worldId === 2);
     const world6 = worlds.find((w) => w.worldId === 6);
     const world5 = worlds.find((w) => w.worldId === 5);
+
     const handleReset = () =>
         window.confirm(
             "Effacer toute la progression ? Cette action est irréversible."
@@ -203,6 +213,7 @@ function TeacherDashboard({ onClose }) {
                     gap: ".75rem",
                 }}
             >
+                {/* En-tête */}
                 <header
                     style={{
                         display: "flex",
@@ -254,6 +265,7 @@ function TeacherDashboard({ onClose }) {
                     )}
                 </header>
 
+                {/* Alerte transition rentrée 2025 */}
                 {allR.length === 0 && (
                     <div
                         style={{
@@ -276,6 +288,7 @@ function TeacherDashboard({ onClose }) {
                     </div>
                 )}
 
+                {/* Résumé global */}
                 <div
                     style={{
                         display: "grid",
@@ -331,6 +344,7 @@ function TeacherDashboard({ onClose }) {
                     ))}
                 </div>
 
+                {/* Lignes par monde */}
                 <div
                     style={{
                         display: "flex",
