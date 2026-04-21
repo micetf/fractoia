@@ -1,19 +1,16 @@
 import { useState, useCallback } from "react";
 
+/** Détermine la phase initiale d'un défi. Hors hook : évite les avertissements exhaustive-deps. */
+const initPhase = (ch) => (ch?.bracket ? "bracket" : "place");
+
 /**
  * Gère la séquence de défis fraction avec phase d'encadrement optionnelle.
- *
- * Si le défi possède un champ `bracket`, démarre en phase `'bracket'`.
- * `confirmBracket()` passe en phase `'place'` sans reset.
- * Sans `bracket` (world1, world4, world5) : phase `'place'` directe — rétrocompatible.
- *
+ * Sans `bracket` : phase `'place'` directe — rétrocompatible avec world1/4/5.
  * @template T
  * @param {T[]} challenges
  * @param {number} [tolerance=0.02]
  */
 export function useFractionChallenge(challenges, tolerance = 0.02) {
-    const initPhase = (ch) => (ch?.bracket ? "bracket" : "place");
-
     const [index, setIndex] = useState(0);
     const [attempts, setAttempts] = useState(0);
     const [done, setDone] = useState(false);
