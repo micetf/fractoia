@@ -5,6 +5,7 @@ import ProgressStars from "../ui/ProgressStars.jsx";
 import { useFeedback } from "../../hooks/useFeedback.js";
 import { useCompareChallenge } from "../../hooks/useCompareChallenge.js";
 import { useGameProgression } from "../../hooks/useGameProgression.js";
+import { ERROR_MESSAGES } from "../../data/errorMessages.js";
 import { WORLD2TER_CHALLENGES } from "../../data/challenges/world2ter.js";
 
 const btn = (bg, fg = "#fff", px = "2rem") => ({
@@ -24,13 +25,9 @@ const BTN_RESET = btn("#6366f1", "#fff", "1.5rem");
 /**
  * Monde 7 "Le Pont de Léna" — comparaison de fractions.
  *
- * Attendus (BO n°16, 2026) :
- *   CM1/CM2 : "Comparer des fractions"
- *   6ème    : "Établir des égalités · Comparer et encadrer · Ordonner"
- *
- * Mécanique :
- *   Phase "question" → CompareQuestion affiche fracA / fracB + boutons A / B / Égales
- *   Phase "revealed" → NumberLine double (valA + valB) après réponse correcte
+ * Sprint E : `errorBias` des défis world2ter.js est maintenant câblé
+ * vers `ERROR_MESSAGES` — un message diagnostique s'affiche dans
+ * FeedbackToast quand l'élève commet une erreur avec biais connu.
  *
  * @param {{ onComplete?: function }} props
  */
@@ -47,10 +44,14 @@ function WorldBridge({ onComplete }) {
     const handleAnswer = useCallback(
         (answer) => {
             if (showCorrection) return;
-            const { correct, attempts, showHint: needHint } = check(answer);
+            const {
+                correct,
+                attempts,
+                showHint: needHint,
+                errorBias,
+            } = check(answer);
             if (correct) {
-                const stars = attempts === 1 ? 3 : attempts === 2 ? 2 : 1;
-                setStarsEarned(stars);
+                setStarsEarned(attempts === 1 ? 3 : attempts === 2 ? 2 : 1);
                 setShowCorrection(true);
                 setShowHintFlag(false);
                 recordResult(7, index, true, attempts);
@@ -61,12 +62,17 @@ function WorldBridge({ onComplete }) {
                         : `Bravo ! Trouvé en ${attempts} essais.`
                 );
             } else {
+                // Sprint E — message diagnostique si biais cognitif identifié
+                const diagMsg = errorBias
+                    ? (ERROR_MESSAGES[errorBias]?.body ?? null)
+                    : null;
                 if (needHint) {
                     setShowHintFlag(true);
                     showHint(`${challenge.emoji} ${challenge.hint}`);
                 } else {
                     showError(
-                        "Pas tout à fait… Réfléchis à la taille des parts !"
+                        "Pas tout à fait… Réfléchis à la taille des parts !",
+                        diagMsg
                     );
                 }
             }
@@ -90,7 +96,6 @@ function WorldBridge({ onComplete }) {
         setShowHintFlag(false);
         next();
     }, [next]);
-
     const handleReset = useCallback(() => {
         setShowCorrection(false);
         setStarsEarned(0);
@@ -98,7 +103,6 @@ function WorldBridge({ onComplete }) {
         reset();
     }, [reset]);
 
-    // ── Écran de fin ──────────────────────────────────────────────────────────
     if (done) {
         return (
             <div
@@ -109,7 +113,7 @@ function WorldBridge({ onComplete }) {
                     justifyContent: "center",
                     padding: "2rem",
                     background:
-                        "linear-gradient(135deg, #1e1b4b 0%, #312e81 60%, #4c1d95 100%)",
+                        "linear-gradient(135deg,#1e1b4b 0%,#312e81 60%,#4c1d95 100%)",
                 }}
             >
                 <div className="text-center animate-bounce-in">
@@ -118,7 +122,7 @@ function WorldBridge({ onComplete }) {
                     </div>
                     <h2
                         style={{
-                            fontFamily: "'Baloo 2', sans-serif",
+                            fontFamily: "'Baloo 2',sans-serif",
                             color: "#e0e7ff",
                             fontSize: "2rem",
                             fontWeight: 800,
@@ -130,7 +134,7 @@ function WorldBridge({ onComplete }) {
                     <p
                         style={{
                             color: "#a5b4fc",
-                            fontFamily: "'Nunito', sans-serif",
+                            fontFamily: "'Nunito',sans-serif",
                             marginBottom: "1.5rem",
                             lineHeight: 1.5,
                         }}
@@ -163,13 +167,12 @@ function WorldBridge({ onComplete }) {
         );
     }
 
-    // ── Jeu principal ─────────────────────────────────────────────────────────
     return (
         <div
             style={{
                 minHeight: "100vh",
                 background:
-                    "linear-gradient(160deg, #1e1b4b 0%, #2e1065 50%, #1e1b4b 100%)",
+                    "linear-gradient(160deg,#1e1b4b 0%,#2e1065 50%,#1e1b4b 100%)",
                 padding: "1.5rem 1rem 2rem",
             }}
         >
@@ -182,23 +185,22 @@ function WorldBridge({ onComplete }) {
                     gap: "1.25rem",
                 }}
             >
-                {/* En-tête */}
                 <div style={{ textAlign: "center" }}>
                     <p
                         style={{
-                            fontFamily: "'Baloo 2', sans-serif",
+                            fontFamily: "'Baloo 2',sans-serif",
                             color: "#a5b4fc",
-                            fontSize: "0.78rem",
+                            fontSize: ".78rem",
                             fontWeight: 700,
-                            letterSpacing: "0.08em",
-                            margin: "0 0 0.25rem",
+                            letterSpacing: ".08em",
+                            margin: "0 0 .25rem",
                         }}
                     >
                         MONDE 7 · LE PONT DE LÉNA
                     </p>
                     <h1
                         style={{
-                            fontFamily: "'Baloo 2', sans-serif",
+                            fontFamily: "'Baloo 2',sans-serif",
                             color: "#e0e7ff",
                             fontSize: "1.5rem",
                             fontWeight: 800,
@@ -210,7 +212,6 @@ function WorldBridge({ onComplete }) {
                     </h1>
                 </div>
 
-                {/* Contexte narratif */}
                 <div
                     style={{
                         background: "rgba(255,255,255,0.06)",
@@ -218,7 +219,7 @@ function WorldBridge({ onComplete }) {
                         border: "1.5px solid rgba(165,180,252,0.25)",
                         padding: "1.1rem 1.25rem",
                         display: "flex",
-                        gap: "0.75rem",
+                        gap: ".75rem",
                         alignItems: "flex-start",
                     }}
                 >
@@ -227,9 +228,9 @@ function WorldBridge({ onComplete }) {
                     </span>
                     <p
                         style={{
-                            fontFamily: "'Nunito', sans-serif",
+                            fontFamily: "'Nunito',sans-serif",
                             color: "#c7d2fe",
-                            fontSize: "0.95rem",
+                            fontSize: ".95rem",
                             lineHeight: 1.6,
                             margin: 0,
                         }}
@@ -238,7 +239,6 @@ function WorldBridge({ onComplete }) {
                     </p>
                 </div>
 
-                {/* Question de comparaison */}
                 <CompareQuestion
                     challenge={challenge}
                     phase={phase}
@@ -246,7 +246,6 @@ function WorldBridge({ onComplete }) {
                     showHint={showHintFlag}
                 />
 
-                {/* Actions post-réponse correcte */}
                 {showCorrection && (
                     <div
                         className="flex flex-col items-center animate-float-up"
@@ -261,13 +260,12 @@ function WorldBridge({ onComplete }) {
                     </div>
                 )}
 
-                {/* Barre de progression */}
                 <div
                     style={{
                         display: "flex",
-                        gap: "0.4rem",
+                        gap: ".4rem",
                         justifyContent: "center",
-                        marginTop: "0.5rem",
+                        marginTop: ".5rem",
                     }}
                 >
                     {Array.from({ length: total }, (_, i) => (
@@ -275,9 +273,9 @@ function WorldBridge({ onComplete }) {
                             key={i}
                             className={i === index ? "animate-pulse-glow" : ""}
                             style={{
-                                height: "0.4rem",
+                                height: ".4rem",
                                 borderRadius: "999px",
-                                transition: "all 0.3s",
+                                transition: "all .3s",
                                 width: i === index ? "2rem" : "1.25rem",
                                 backgroundColor:
                                     i < index
