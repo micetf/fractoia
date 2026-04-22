@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import NumberLine from "../ui/NumberLine.jsx";
 import FractionDisplay from "../ui/FractionDisplay.jsx";
 import FractionBar from "../ui/FractionBar.jsx";
+import DecimalInput from "../ui/DecimalInput.jsx";
 import FeedbackToast from "../ui/FeedbackToast.jsx";
 import ProgressStars from "../ui/ProgressStars.jsx";
 import { useFeedback } from "../../hooks/useFeedback.js";
@@ -24,24 +25,29 @@ const BTN_VALIDATE = btn("#fbbf24", "#1a0836");
 const BTN_NEXT = btn("#f9a8d4", "#831843");
 const BTN_RESET = btn("#fbbf24", "#1a0836", "1.5rem");
 
-/** Bandeau coloré identifiant le sens mobilisé par le défi. */
 const SENSE_BADGE = {
     partage: { label: "Fraction-partage", bg: "#fef3c7", color: "#92400e" },
     mesure: { label: "Fraction-mesure", bg: "#dbeafe", color: "#1e40af" },
     magnitude: { label: "Fraction-magnitude", bg: "#ede9fe", color: "#5b21b6" },
     quotient: { label: "Fraction-quotient", bg: "#d1fae5", color: "#065f46" },
+    "decimal-auto": {
+        label: "Automatisme décimal",
+        bg: "#fce7f3",
+        color: "#9d174d",
+    },
+    "equality-gap": {
+        label: "Égalité à trous",
+        bg: "#fff7ed",
+        color: "#9a3412",
+    },
 };
 
 /**
- * Monde 5 "Le Grand Festival" — synthèse des 4 sens de la fraction.
+ * Monde 5 "Le Grand Festival" — synthèse des 4 sens + automatismes 6ème.
  *
- * Dispatcher par `sense` :
- * - `partage`           → FractionBar présente, showDecomposition false
- * - `mesure`            → pas de FractionBar, showDecomposition false
- * - `magnitude|quotient`→ pas de FractionBar, showDecomposition true (fractions > 1)
- *
- * Le champ `sense` n'est jamais affiché à l'élève — il est réservé
- * au TeacherDashboard (décomposition pédagogique par sens).
+ * Sprint B : ajout des sens "decimal-auto" et "equality-gap".
+ * Ces deux sens utilisent `DecimalInput` à la place de `NumberLine`.
+ * La logique de validation (`runCheck`) est partagée entre les trois modes.
  *
  * @param {{ onComplete?: function }} props
  */
@@ -49,15 +55,57 @@ function WorldFestival({ onComplete }) {
     const [answer, setAnswer] = useState(null);
     const [showCorrection, setShowCorrection] = useState(false);
     const [starsEarned, setStarsEarned] = useState(0);
+    const [showHintFlag, setShowHintFlag] = useState(false);
 
     const { feedback, showSuccess, showError, showHint } = useFeedback();
-    const { challenge, index, total, target, done, check, next, reset } =
+    const { challenge, index, total, done, check, next, reset } =
         useFractionChallenge(WORLD5_CHALLENGES);
     const { recordResult } = useGameProgression();
 
-    const showDecomp = challenge ? challenge.num > challenge.den : false;
-    const showBar = challenge?.sense === "partage";
-    const badge = challenge ? (SENSE_BADGE[challenge.sense] ?? null) : null;
+    const sense = challenge?.sense ?? "partage";
+    const isAutomatism = sense === "decimal-auto" || sense === "equality-gap";
+    const showDecomp =
+        !isAutomatism && challenge ? challenge.num > challenge.den : false;
+    const showBar = sense === "partage";
+    const badge = challenge ? (SENSE_BADGE[sense] ?? null) : null;
+
+    /** Logique de validation partagée entre NumberLine, DecimalInput et choix fraction. */
+    const runCheck = useCallback(
+        (floatValue) => {
+            if (showCorrection) return;
+            const { correct, attempts, showHint: needHint } = check(floatValue);
+            if (correct) {
+                const stars = attempts === 1 ? 3 : attempts === 2 ? 2 : 1;
+                setStarsEarned(stars);
+                setShowCorrection(true);
+                setShowHintFlag(false);
+                recordResult(5, index, true, attempts);
+                showSuccess(
+                    attempts === 1
+                        ? "Magnifique ! Parfait ! ⭐⭐⭐"
+                        : `Bravo ! Trouvé en ${attempts} essais.`
+                );
+            } else {
+                if (needHint) {
+                    setShowHintFlag(true);
+                    showHint(`${challenge.emoji} ${challenge.hint}`);
+                } else {
+                    showError("Pas tout à fait… Lis bien la situation !");
+                }
+                setAnswer(null);
+            }
+        },
+        [
+            showCorrection,
+            check,
+            challenge,
+            index,
+            recordResult,
+            showSuccess,
+            showError,
+            showHint,
+        ]
+    );
 
     const handleAnswer = useCallback(
         (val) => {
@@ -65,49 +113,25 @@ function WorldFestival({ onComplete }) {
         },
         [showCorrection]
     );
-
     const handleValidate = useCallback(() => {
         if (answer === null) {
             showHint("Clique sur la droite pour placer ta fraction !");
             return;
         }
-        const { correct, attempts, showHint: needHint } = check(answer);
-        if (correct) {
-            const stars = attempts === 1 ? 3 : attempts === 2 ? 2 : 1;
-            setStarsEarned(stars);
-            setShowCorrection(true);
-            recordResult(5, index, true, attempts);
-            showSuccess(
-                attempts === 1
-                    ? "Magnifique ! Placement parfait ! ⭐⭐⭐"
-                    : `Bravo ! Trouvé en ${attempts} essais.`
-            );
-        } else {
-            if (needHint) showHint(`${challenge.emoji} ${challenge.hint}`);
-            else showError("Pas tout à fait… Lis bien la situation !");
-            setAnswer(null);
-        }
-    }, [
-        answer,
-        check,
-        challenge,
-        index,
-        recordResult,
-        showSuccess,
-        showError,
-        showHint,
-    ]);
-
+        runCheck(answer);
+    }, [answer, showHint, runCheck]);
     const handleNext = useCallback(() => {
         setAnswer(null);
         setShowCorrection(false);
         setStarsEarned(0);
+        setShowHintFlag(false);
         next();
     }, [next]);
     const handleReset = useCallback(() => {
         setAnswer(null);
         setShowCorrection(false);
         setStarsEarned(0);
+        setShowHintFlag(false);
         reset();
     }, [reset]);
 
@@ -146,22 +170,25 @@ function WorldFestival({ onComplete }) {
                             marginBottom: "1.5rem",
                         }}
                     >
-                        Tu maîtrises tous les sens de la fraction. Bravo,
-                        explorateur·rice !
+                        Tu maîtrises tous les sens de la fraction. Incroyable !
                     </p>
                     <div
                         style={{
                             display: "flex",
-                            gap: ".75rem",
+                            gap: "1rem",
                             justifyContent: "center",
+                            flexWrap: "wrap",
                         }}
                     >
                         <button onClick={handleReset} style={BTN_RESET}>
-                            Rejouer
+                            Rejouer 🔄
                         </button>
                         {onComplete && (
-                            <button onClick={onComplete} style={BTN_NEXT}>
-                                Retour à la carte 🗺️
+                            <button
+                                onClick={onComplete}
+                                style={btn("#f0abfc", "#831843")}
+                            >
+                                Terminer ✨
                             </button>
                         )}
                     </div>
@@ -174,9 +201,9 @@ function WorldFestival({ onComplete }) {
         <div
             style={{
                 minHeight: "100vh",
-                padding: "1.5rem 1rem",
                 background:
-                    "linear-gradient(160deg,#1a0836 0%,#3b0764 50%,#701a75 100%)",
+                    "linear-gradient(160deg,#1a0836 0%,#3b0764 50%,#1a0836 100%)",
+                padding: "1.5rem 1rem 2rem",
             }}
         >
             <header
@@ -239,50 +266,43 @@ function WorldFestival({ onComplete }) {
                         boxShadow: "0 8px 32px -4px rgba(0,0,0,0.6)",
                     }}
                 >
-                    {/* Badge sens — visible enseignant, neutre pour l'élève */}
+                    {/* Badge sens */}
                     {badge && (
                         <div
                             style={{
-                                display: "flex",
-                                justifyContent: "flex-end",
+                                display: "inline-block",
+                                fontSize: ".65rem",
+                                fontFamily: "'Nunito',sans-serif",
+                                fontWeight: 700,
+                                color: badge.color,
+                                background: badge.bg,
+                                borderRadius: "999px",
+                                padding: "2px 10px",
                                 marginBottom: ".75rem",
                             }}
                         >
-                            <span
-                                style={{
-                                    fontSize: ".68rem",
-                                    padding: ".2rem .6rem",
-                                    borderRadius: "999px",
-                                    background: badge.bg,
-                                    color: badge.color,
-                                    fontFamily: "'Nunito',sans-serif",
-                                    fontWeight: 700,
-                                }}
-                            >
-                                {badge.label}
-                            </span>
+                            {badge.label}
                         </div>
                     )}
 
-                    {/* Contexte narratif */}
+                    {/* Contexte */}
                     <div
-                        className="animate-float-up"
-                        style={{ textAlign: "center", marginBottom: "1.25rem" }}
+                        style={{
+                            display: "flex",
+                            gap: ".75rem",
+                            alignItems: "flex-start",
+                            marginBottom: "1.25rem",
+                        }}
                     >
-                        <div
-                            style={{
-                                fontSize: "2.5rem",
-                                marginBottom: ".5rem",
-                            }}
-                        >
+                        <span style={{ fontSize: "1.75rem", lineHeight: 1 }}>
                             {challenge.emoji}
-                        </div>
+                        </span>
                         <p
                             style={{
                                 fontFamily: "'Nunito',sans-serif",
-                                color: "#fdf4ff",
+                                color: "#e9d5ff",
                                 fontSize: "1rem",
-                                lineHeight: 1.5,
+                                lineHeight: 1.55,
                                 margin: 0,
                             }}
                         >
@@ -303,47 +323,68 @@ function WorldFestival({ onComplete }) {
                         </div>
                     )}
 
-                    {/* Fraction à placer */}
-                    <div
-                        style={{ textAlign: "center", marginBottom: "1.25rem" }}
-                    >
-                        <FractionDisplay
-                            numerator={challenge.num}
-                            denominator={challenge.den}
-                            size="lg"
-                            color="#fdf4ff"
-                            barColor="#f0abfc"
-                        />
-                    </div>
-
-                    {/* Droite numérique */}
-                    <div style={{ marginBottom: ".5rem" }}>
-                        <NumberLine
-                            min={0}
-                            max={challenge.max}
-                            denominator={challenge.den}
-                            value={answer}
-                            onChange={handleAnswer}
-                            showDecomposition={showDecomp}
+                    {/* Mode automatismes — DecimalInput (decimal-auto ou equality-gap) */}
+                    {isAutomatism && !showCorrection && (
+                        <DecimalInput
+                            challenge={challenge}
+                            onValidate={runCheck}
                             disabled={showCorrection}
-                            targetValue={showCorrection ? target : null}
+                            showHint={showHintFlag}
                         />
-                    </div>
+                    )}
 
-                    {!showCorrection ? (
-                        <div
-                            className="flex justify-center"
-                            style={{ marginTop: "1.5rem" }}
-                        >
-                            <button
-                                onClick={handleValidate}
-                                style={BTN_VALIDATE}
-                                className="animate-pulse-glow"
+                    {/* Mode standard — FractionDisplay + NumberLine */}
+                    {!isAutomatism && (
+                        <>
+                            <div
+                                style={{
+                                    textAlign: "center",
+                                    marginBottom: "1.25rem",
+                                }}
                             >
-                                Valider ✓
-                            </button>
-                        </div>
-                    ) : (
+                                <FractionDisplay
+                                    numerator={challenge.num}
+                                    denominator={challenge.den}
+                                    size="lg"
+                                    color="#fdf4ff"
+                                    barColor="#f0abfc"
+                                />
+                            </div>
+                            <div style={{ marginBottom: ".5rem" }}>
+                                <NumberLine
+                                    min={0}
+                                    max={challenge.max}
+                                    denominator={challenge.den}
+                                    value={answer}
+                                    onChange={handleAnswer}
+                                    showDecomposition={showDecomp}
+                                    disabled={showCorrection}
+                                    targetValue={
+                                        showCorrection
+                                            ? challenge.num / challenge.den
+                                            : null
+                                    }
+                                />
+                            </div>
+                            {!showCorrection && (
+                                <div
+                                    className="flex justify-center"
+                                    style={{ marginTop: "1.5rem" }}
+                                >
+                                    <button
+                                        onClick={handleValidate}
+                                        style={BTN_VALIDATE}
+                                        className="animate-pulse-glow"
+                                    >
+                                        Valider ✓
+                                    </button>
+                                </div>
+                            )}
+                        </>
+                    )}
+
+                    {/* Post-réponse */}
+                    {showCorrection && (
                         <div
                             className="flex flex-col items-center animate-float-up"
                             style={{ gap: "1rem", marginTop: "1.5rem" }}
