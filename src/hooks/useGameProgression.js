@@ -4,7 +4,7 @@ import { useLocalStorage } from "./useLocalStorage.js";
 const INIT = {
     currentWorld: 1,
     totalStars: 0,
-    worlds: [1, 2, 6, 7, 3, 4, 5].map((id) => ({
+    worlds: [1, 2, 6, 7, 3, 4, 8, 5].map((id) => ({
         worldId: id,
         results: [],
         unlocked: id === 1,
@@ -12,7 +12,6 @@ const INIT = {
     })),
 };
 
-/** Guard r.length > 0 : tableau vide = 0 étoiles (fix edge case calcStars). */
 const calcStars = (r) => {
     if (!r.length) return 0;
     const ok = r.filter((x) => x.success).length;
@@ -29,11 +28,7 @@ const GameProgressionContext = createContext(null);
 
 /**
  * Provider racine — instance unique partagée entre tous les composants.
- * Élimine la désynchronisation entre useState indépendants (bug unlock stale state).
- * À placer dans App.jsx, au-dessus de AppRouter.
- *
- * Ordre des worlds dans INIT : suit la chaîne d'unlock réelle
- *   1 (Farm) → 2 (Workshop) → 6 (Granary) → 7 (Bridge) → 3 (Road) → 4 (Market) → 5 (Festival)
+ * Ordre INIT : 1→2→6→7→3→4→8→5 (chaîne d'unlock réelle)
  */
 export function GameProgressionProvider({ children }) {
     const [gameState, setGameState, resetGame] = useLocalStorage(
@@ -85,7 +80,6 @@ export function GameProgressionProvider({ children }) {
         [gameState]
     );
 
-    // createElement évite le JSX dans un fichier .js (Vite/OXC refuse JSX hors .jsx)
     return createElement(
         GameProgressionContext.Provider,
         {
@@ -101,10 +95,6 @@ export function GameProgressionProvider({ children }) {
     );
 }
 
-/**
- * API identique à l'ancienne version — aucun composant consommateur à modifier.
- * Lève une erreur explicite si utilisé hors Provider.
- */
 export function useGameProgression() {
     const ctx = useContext(GameProgressionContext);
     if (!ctx)
