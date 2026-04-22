@@ -7,10 +7,7 @@ import { WORLD2_CHALLENGES } from "../../data/challenges/world2.js";
 import { WORLD2BIS_CHALLENGES } from "../../data/challenges/world2bis.js";
 import { WORLD5_CHALLENGES } from "../../data/challenges/world5.js";
 
-/**
- * Sprint A : worldId 7 (Le Pont de Léna) ajouté entre Grenier (6) et Route (3).
- * Les totaux étoiles/mondes sont calculés dynamiquement depuis WORLDS_META.length.
- */
+// Sprint D : worldId 8 (La Fête de l'Équinoxe) ajouté entre Market (4) et Festival (5).
 const WORLDS_META = [
     {
         id: 1,
@@ -23,7 +20,7 @@ const WORLDS_META = [
         id: 2,
         label: "🔨 L'Atelier de Koro",
         color: "#f97316",
-        level: "CM1 (unitaire) · CM2",
+        level: "CM1 · CM2",
         attendu: "Fraction-mesure puis opérateur",
     },
     {
@@ -44,7 +41,7 @@ const WORLDS_META = [
         id: 3,
         label: "⭐ La Route des Étoiles",
         color: "#6366f1",
-        level: "CM1 — objectif central",
+        level: "CM1",
         attendu: "Fractions > 1 · Demi-droite · Encadrement",
     },
     {
@@ -55,11 +52,18 @@ const WORLDS_META = [
         attendu: "Fraction-quotient · a ÷ b = a/b",
     },
     {
+        id: 8,
+        label: "🎭 La Fête de l'Équinoxe",
+        color: "#0ea5e9",
+        level: "6ème",
+        attendu: "Pourcentages · sens · calcul · proportion",
+    },
+    {
         id: 5,
         label: "🎪 Le Grand Festival",
         color: "#ec4899",
         level: "6ème — synthèse",
-        attendu: "Tous les sens · Sans appui systématique",
+        attendu: "Tous les sens · Automatismes · Sans appui systématique",
     },
 ];
 
@@ -95,14 +99,13 @@ const Bar = ({ pct, color }) => (
 function WorldRow({ meta, data }) {
     const { rate, avg, n } = calcStats(data.results);
     const done = data.stars > 0;
-    const borderColor = done ? meta.color + "44" : "#e8cfa4";
     return (
         <div
             style={{
                 padding: ".875rem 1rem .875rem 1.25rem",
                 borderRadius: "1rem",
                 background: done ? "#fff" : "#fdf9f4",
-                border: `1.5px solid ${borderColor}`,
+                border: `1.5px solid ${done ? meta.color + "44" : "#e8cfa4"}`,
                 borderLeft: `4px solid ${done ? meta.color : "#e8cfa4"}`,
                 opacity: data.unlocked ? 1 : 0.4,
             }}
@@ -173,10 +176,6 @@ function WorldRow({ meta, data }) {
     );
 }
 
-/**
- * Tableau de bord enseignant — FRACTOÏA.
- * @param {{ onClose?: function }} props
- */
 function TeacherDashboard({ onClose }) {
     const { gameState, resetGame } = useGameProgression();
     const { totalStars, worlds } = gameState;
@@ -213,7 +212,6 @@ function TeacherDashboard({ onClose }) {
                     gap: ".75rem",
                 }}
             >
-                {/* En-tête */}
                 <header
                     style={{
                         display: "flex",
@@ -265,7 +263,6 @@ function TeacherDashboard({ onClose }) {
                     )}
                 </header>
 
-                {/* Alerte transition rentrée 2025 */}
                 {allR.length === 0 && (
                     <div
                         style={{
@@ -281,14 +278,11 @@ function TeacherDashboard({ onClose }) {
                     >
                         <strong>⚠️ Note de transition — rentrée 2025</strong>
                         <br />
-                        Les élèves actuels de CM1/CM2 n'ont pas suivi le
-                        programme de cycle 2 rénové. Le Monde 1 peut constituer
-                        leur première rencontre avec les fractions simples — ne
-                        pas le passer en accéléré.
+                        Le Monde 1 peut constituer la première rencontre avec
+                        les fractions simples — ne pas le passer en accéléré.
                     </div>
                 )}
 
-                {/* Résumé global */}
                 <div
                     style={{
                         display: "grid",
@@ -344,7 +338,6 @@ function TeacherDashboard({ onClose }) {
                     ))}
                 </div>
 
-                {/* Lignes par monde */}
                 <div
                     style={{
                         display: "flex",
@@ -364,14 +357,14 @@ function TeacherDashboard({ onClose }) {
                     <SenseBreakdown
                         results={world2.results}
                         challenges={WORLD2_CHALLENGES}
-                        title="🔨 Atelier de Koro — sens mesure vs opérateur"
+                        title="🔨 Atelier — mesure vs opérateur"
                     />
                 )}
                 {world6?.results?.length > 0 && (
                     <SenseBreakdown
                         results={world6.results}
                         challenges={WORLD2BIS_CHALLENGES}
-                        title="🫙 Grenier de Koro — addition vs soustraction"
+                        title="🫙 Grenier — addition vs soustraction"
                     />
                 )}
                 {world5?.results?.length > 0 && (
