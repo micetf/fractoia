@@ -1,41 +1,39 @@
 /**
  * Défis du Monde 5 — "Le Grand Festival"
- * Sens travaillé : TOUS les sens de la fraction — partage, opérateur, quotient, magnitude
- * Les fractions > 1 sont pleinement intégrées dans la progression.
  *
- * Rôle didactique : ce monde est une synthèse.
- * L'élève doit mobiliser le bon sens selon le contexte narratif,
- * sans appui systématique sur une représentation unique.
+ * Sens travaillés :
+ * - Paliers 1-3 (existants) : partage · mesure · magnitude · quotient
+ * - Palier 4 (Sprint B) : decimal-auto — fraction → écriture décimale
+ * - Palier 5 (Sprint B) : equality-gap — compléter une égalité à trous
  *
- * Conventions d'écriture :
- * - `context` : aucune notation fractionnaire — le contexte seul oriente le sens.
- * - `hint`    : écriture littérale uniquement ("sept quarts", "deux tiers"…)
+ * Sprint B — automatismes 6ème (BO n°16, 2026) :
+ * Cas decimal-auto couverts (3/6 du BO) : 1/4=0,25 · 1/2=0,5 · 3/2=1,5
+ * Cas equality-gap couverts (3/8 du BO) : 1/4+1/4=1/2 · 1−1/4=3/4 · 3/4+1/4=1
  *
- * Progression didactique :
- * - Palier 1 (défis 1-2) : révision — sens partage et mesure, fractions ≤ 1
- *   Contextes festifs simples pour entrer en douceur
- * - Palier 2 (défis 3-4) : fractions > 1 dans des sens variés
- *   L'élève ne sait pas à l'avance si la fraction dépasse 1
- * - Palier 3 (défis 5-6) : fractions bien supérieures à 2 — consolidation finale
- *   Brise définitivement la conception "la fraction, c'est toujours petit"
+ * Pour les défis decimal-auto et equality-gap :
+ * - `num` / `den` représentent le RÉSULTAT attendu (target = num/den)
+ * - `useFractionChallenge` reste utilisé sans modification — check(value) compare
+ *   la valeur décimale saisie par l'élève via DecimalInput
+ * - WorldFestival branche sur DecimalInput au lieu de NumberLine pour ces sens
  *
- * Niveau programme (BO n°16, avril 2025) :
- * - Tous les défis → "6e" : mobilisation de tous les sens sans appui systématique.
+ * Conventions (tous défis) :
+ * - `context` : aucune notation fractionnaire — FractionDisplay affiche séparément
+ * - `hint`    : écriture littérale, jamais de barre oblique
  *
  * @typedef {Object} FestivalChallenge
  * @property {number} num
  * @property {number} den
- * @property {number} max      - Étendue de la droite numérique
- * @property {string} level    - Niveau programme cible (BO n°16, 2025)
+ * @property {number} max
+ * @property {string} level
  * @property {string} emoji
- * @property {string} context  - Mise en situation sans notation fractionnaire
- * @property {string} hint     - Indice en écriture littérale (≥ 2 erreurs)
- * @property {string} sense    - Sens mobilisé — documentation didactique, non affiché
+ * @property {string} context
+ * @property {string} hint
+ * @property {string} sense
  */
 
 /** @type {FestivalChallenge[]} */
 export const WORLD5_CHALLENGES = [
-    // ── Palier 1 : révision des sens connus, fractions ≤ 1 ──
+    // ── Palier 1 : révision des sens connus, fractions ≤ 1 ──────────────────
     {
         num: 2,
         den: 3,
@@ -59,7 +57,7 @@ export const WORLD5_CHALLENGES = [
         sense: "mesure",
     },
 
-    // ── Palier 2 : fractions > 1, sens variés ──
+    // ── Palier 2 : fractions > 1, sens variés ───────────────────────────────
     {
         num: 7,
         den: 4,
@@ -78,32 +76,107 @@ export const WORLD5_CHALLENGES = [
         level: "6e",
         emoji: "🎪",
         context:
-            "L'acrobate traverse la scène 5 fois en 3 secondes. Combien de longueurs de scène parcoure-t-il chaque seconde ?",
-        hint: "Cinq tiers, c'est 1 longueur entière et encore deux tiers — cherche entre 1 et 2.",
+            "5 chapiteaux à partager entre 3 troupes. Chaque troupe reçoit plus d'un chapiteau entier !",
+        hint: "Cinq tiers, c'est 1 entier et encore deux tiers — cherche juste après 1, entre 1 et 2.",
         sense: "quotient",
     },
 
-    // ── Palier 3 : fractions bien supérieures à 2 — consolidation finale ──
+    // ── Palier 3 : fractions bien supérieures à 2 ───────────────────────────
     {
         num: 9,
         den: 4,
         max: 4,
         level: "6e",
-        emoji: "🔭",
+        emoji: "🎠",
         context:
-            "L'astronome du festival pointe sa lunette : l'étoile filante a parcouru neuf quarts de la largeur du ciel visible.",
-        hint: "Neuf quarts, c'est 2 entiers et encore un quart — passe la graduation 2 et avance d'un petit pas.",
+            "Le carrousel fait des tours. Après neuf quarts de tour, il a dépassé les deux premiers tours complets.",
+        hint: "Neuf quarts, c'est 2 tours entiers et encore un quart — cherche juste après 2.",
         sense: "magnitude",
     },
     {
-        num: 8,
+        num: 7,
         den: 3,
         max: 4,
         level: "6e",
-        emoji: "🎠",
+        emoji: "🎻",
         context:
-            "Le manège tourne : en 3 minutes il fait exactement 1 tour. Après 8 minutes, combien de tours complets et de fraction de tour a-t-il parcourus ?",
-        hint: "Huit tiers, c'est 2 tours entiers et encore deux tiers — cherche entre 2 et 3, à deux tiers du chemin.",
+            "7 violons à distribuer entre 3 musiciens. Chacun reçoit bien plus que deux instruments.",
+        hint: "Sept tiers, c'est 2 entiers et encore un tiers — cherche juste après 2.",
         sense: "quotient",
+    },
+
+    // ── Palier 4 : automatisme fraction→décimale (Sprint B, BO n°16) ────────
+    // FractionDisplay montre la fraction ; l'élève tape l'écriture décimale FR.
+    // Cas couverts : 1/4=0,25 · 1/2=0,5 · 3/2=1,5
+    {
+        num: 1,
+        den: 4,
+        max: 2,
+        level: "6e",
+        emoji: "🎹",
+        context:
+            "Le premier acte dure un quart de la soirée. Écris cette durée sous forme décimale.",
+        hint: "Un quart s'écrit zéro virgule vingt-cinq.",
+        sense: "decimal-auto",
+    },
+    {
+        num: 1,
+        den: 2,
+        max: 2,
+        level: "6e",
+        emoji: "🥁",
+        context:
+            "L'entracte occupe une demie de la soirée. Écris cette durée sous forme décimale.",
+        hint: "Une demie s'écrit zéro virgule cinq.",
+        sense: "decimal-auto",
+    },
+    {
+        num: 3,
+        den: 2,
+        max: 3,
+        level: "6e",
+        emoji: "🎺",
+        context:
+            "Le bis dure trois demies de soirée — plus d'une soirée entière ! Écris cela sous forme décimale.",
+        hint: "Trois demies s'écrit un virgule cinq — une soirée et encore une demie.",
+        sense: "decimal-auto",
+    },
+
+    // ── Palier 5 : égalités à trous (Sprint B, BO n°16) ────────────────────
+    // num/den = RÉSULTAT de l'égalité. Résultats distincts : 0,5 · 0,75 · 1,0
+    // L'élève saisit le résultat en écriture décimale via DecimalInput.
+    // Cas couverts : 1/4+1/4=1/2 · 1−1/4=3/4 · 3/4+1/4=1
+    {
+        num: 1,
+        den: 2,
+        max: 2,
+        level: "6e",
+        emoji: "🎸",
+        context:
+            "Deux sets de guitare : le premier dure un quart de soirée, le second aussi. Quelle fraction de la soirée ont-ils joué au total ? Donne la réponse en écriture décimale.",
+        hint: "Un quart plus un quart, c'est deux quarts — soit une demie, soit zéro virgule cinq.",
+        sense: "equality-gap",
+    },
+    {
+        num: 3,
+        den: 4,
+        max: 2,
+        level: "6e",
+        emoji: "🪗",
+        context:
+            "La soirée entière est planifiée. Les discours prennent un quart du temps. Quelle fraction reste-t-il pour la fête ? Donne la réponse en écriture décimale.",
+        hint: "Un entier moins un quart, c'est trois quarts — soit zéro virgule soixante-quinze.",
+        sense: "equality-gap",
+    },
+    {
+        num: 4,
+        den: 4,
+        max: 2,
+        level: "6e",
+        emoji: "🎙️",
+        context:
+            "Le premier DJ joue trois quarts de la nuit, le second prend le relai pour un quart. Ensemble, combien font-ils ? Donne la réponse en écriture décimale.",
+        hint: "Trois quarts plus un quart, c'est quatre quarts — c'est exactement un entier, soit un virgule zéro.",
+        sense: "equality-gap",
     },
 ];
