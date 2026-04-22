@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import NumberLine from "../ui/NumberLine.jsx";
 import FractionDisplay from "../ui/FractionDisplay.jsx";
 import MeasureRuler from "../ui/MeasureRuler.jsx";
+import DualRepresentation from "../ui/DualRepresentation.jsx";
 import FeedbackToast from "../ui/FeedbackToast.jsx";
 import ProgressStars from "../ui/ProgressStars.jsx";
 import { useFeedback } from "../../hooks/useFeedback.js";
@@ -23,21 +24,20 @@ const btn = (bg, fg = "#1e1b4b", px = "2rem") => ({
 const BTN_VALIDATE = btn("#f59e0b");
 const BTN_NEXT = btn("#10b981", "#fff");
 const BTN_RESET = btn("#f59e0b", "#1e1b4b", "1.5rem");
-
 const fmt = (n) =>
     Number.isInteger(n)
         ? String(n)
         : n.toFixed(2).replace(".", ",").replace(/0$/, "");
 
 /**
- * Monde 2 "L'Atelier de Koro" — fraction-mesure (palier 0) et fraction-opérateur.
+ * Monde 2 "L'Atelier de Koro" — fraction-mesure + fraction-opérateur.
  *
- * Sprint 3 — affichage conditionnel selon `challenge.sense` :
- * - `sense === "mesure"` → MeasureRuler (la fraction est le résultat du mesurage)
- * - sans `sense`         → équation num/den × total = ? (comportement historique)
+ * Sprint F : pour les paliers opérateur non-unitaires (total > 1),
+ * DualRepresentation est affichée post-réponse pour lier explicitement
+ * la FractionBar (sens partage/mesure) et la NumberLine (sens magnitude).
  *
- * useOperatorChallenge reste inchangé : pour les défis mesure (total=1),
- * target = (num/den) × 1 = num/den, ce qui est correct.
+ * Pour les paliers mesure (isMesure), la dualité n'est pas affichée —
+ * MeasureRuler joue déjà le rôle de représentation visuelle principale.
  *
  * @param {{ onComplete?: function }} props
  */
@@ -52,6 +52,7 @@ function WorldWorkshop({ onComplete }) {
     const { recordResult } = useGameProgression();
 
     const isMesure = challenge?.sense === "mesure";
+    const isNonUnitar = !isMesure && challenge?.total > 1;
 
     const handleAnswer = useCallback(
         (val) => {
@@ -59,7 +60,6 @@ function WorldWorkshop({ onComplete }) {
         },
         [showCorrection]
     );
-
     const handleValidate = useCallback(() => {
         if (answer === null) {
             showHint("Clique sur la demi-droite pour placer ta réponse !");
@@ -67,8 +67,7 @@ function WorldWorkshop({ onComplete }) {
         }
         const { correct, attempts, showHint: needHint } = check(answer);
         if (correct) {
-            const stars = attempts === 1 ? 3 : attempts === 2 ? 2 : 1;
-            setStarsEarned(stars);
+            setStarsEarned(attempts === 1 ? 3 : attempts === 2 ? 2 : 1);
             setShowCorrection(true);
             recordResult(2, index, true, attempts);
             showSuccess(
@@ -121,7 +120,7 @@ function WorldWorkshop({ onComplete }) {
                     justifyContent: "center",
                     padding: "2rem",
                     background:
-                        "linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)",
+                        "linear-gradient(135deg,#fffbeb 0%,#fef3c7 100%)",
                 }}
             >
                 <div className="text-center animate-bounce-in">
@@ -130,7 +129,7 @@ function WorldWorkshop({ onComplete }) {
                     </div>
                     <h2
                         style={{
-                            fontFamily: "'Baloo 2', sans-serif",
+                            fontFamily: "'Baloo 2',sans-serif",
                             color: "#5c3d1a",
                             fontSize: "2rem",
                             fontWeight: 800,
@@ -142,7 +141,7 @@ function WorldWorkshop({ onComplete }) {
                     <p
                         style={{
                             color: "#9c6b30",
-                            fontFamily: "'Nunito', sans-serif",
+                            fontFamily: "'Nunito',sans-serif",
                             marginBottom: "1.5rem",
                         }}
                     >
@@ -152,15 +151,18 @@ function WorldWorkshop({ onComplete }) {
                     <div
                         style={{
                             display: "flex",
-                            gap: "0.75rem",
+                            gap: "1rem",
                             justifyContent: "center",
                         }}
                     >
                         <button onClick={handleReset} style={BTN_RESET}>
-                            Rejouer
+                            Rejouer 🔄
                         </button>
                         {onComplete && (
-                            <button onClick={onComplete} style={BTN_NEXT}>
+                            <button
+                                onClick={onComplete}
+                                style={btn("#10b981", "#fff")}
+                            >
                                 Monde suivant →
                             </button>
                         )}
@@ -174,9 +176,9 @@ function WorldWorkshop({ onComplete }) {
         <div
             style={{
                 minHeight: "100vh",
-                padding: "1.5rem 1rem",
                 background:
-                    "linear-gradient(160deg, #fffbeb 0%, #fef3c7 55%, #fde68a 100%)",
+                    "linear-gradient(160deg,#fffbeb 0%,#fef3c7 55%,#fde68a 100%)",
+                padding: "1.5rem 1rem 2rem",
             }}
         >
             <header
@@ -191,7 +193,7 @@ function WorldWorkshop({ onComplete }) {
                 <div>
                     <h1
                         style={{
-                            fontFamily: "'Baloo 2', sans-serif",
+                            fontFamily: "'Baloo 2',sans-serif",
                             color: "#5c3d1a",
                             fontSize: "1.5rem",
                             fontWeight: 800,
@@ -204,13 +206,27 @@ function WorldWorkshop({ onComplete }) {
                     <p
                         style={{
                             color: "#9c6b30",
-                            fontFamily: "'Nunito', sans-serif",
-                            fontSize: "0.8rem",
-                            margin: "0.2rem 0 0",
+                            fontFamily: "'Nunito',sans-serif",
+                            fontSize: ".8rem",
+                            margin: ".2rem 0 0",
                         }}
                     >
-                        Défi {index + 1} / {total}
+                        Monde 2 · Fraction-mesure + opérateur
                     </p>
+                </div>
+                <div
+                    style={{
+                        fontFamily: "'Nunito',sans-serif",
+                        fontSize: ".875rem",
+                        color: "#9c6b30",
+                        display: "flex",
+                        gap: ".2rem",
+                    }}
+                >
+                    <span>Défi</span>
+                    <strong style={{ color: "#5c3d1a" }}>{index + 1}</strong>
+                    <span>/</span>
+                    <span>{total}</span>
                 </div>
             </header>
 
@@ -219,12 +235,11 @@ function WorldWorkshop({ onComplete }) {
                     style={{
                         borderRadius: "1.5rem",
                         padding: "1.75rem",
-                        backgroundColor: "#fff",
+                        background: "#fffbf0",
                         border: "2px solid #e8cfa4",
                         boxShadow: "0 8px 32px -4px rgba(92,61,26,0.22)",
                     }}
                 >
-                    {/* Contexte narratif */}
                     <div
                         className="animate-float-up"
                         style={{ textAlign: "center", marginBottom: "1.25rem" }}
@@ -232,14 +247,14 @@ function WorldWorkshop({ onComplete }) {
                         <div
                             style={{
                                 fontSize: "2.5rem",
-                                marginBottom: "0.5rem",
+                                marginBottom: ".5rem",
                             }}
                         >
                             {challenge.emoji}
                         </div>
                         <p
                             style={{
-                                fontFamily: "'Nunito', sans-serif",
+                                fontFamily: "'Nunito',sans-serif",
                                 color: "#5c3d1a",
                                 fontSize: "1rem",
                                 lineHeight: 1.5,
@@ -250,9 +265,8 @@ function WorldWorkshop({ onComplete }) {
                         </p>
                     </div>
 
-                    {/* Affichage conditionnel selon le sens */}
+                    {/* Représentation selon le sens */}
                     {isMesure ? (
-                        /* Sens mesure : règle SVG + fraction */
                         <div style={{ marginBottom: "1.25rem" }}>
                             <MeasureRuler
                                 numerator={challenge.num}
@@ -262,7 +276,7 @@ function WorldWorkshop({ onComplete }) {
                             <div
                                 style={{
                                     textAlign: "center",
-                                    marginTop: "0.5rem",
+                                    marginTop: ".5rem",
                                 }}
                             >
                                 <FractionDisplay
@@ -273,17 +287,14 @@ function WorldWorkshop({ onComplete }) {
                             </div>
                         </div>
                     ) : (
-                        /* Sens opérateur : équation num/den × total unit = ? unit
-                           Unités affichées en ligne (baseline) — jamais en dessous
-                           d'un chiffre pour éviter toute confusion avec un dénominateur. */
                         <div
                             style={{
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
-                                gap: "0.6rem",
-                                marginBottom: "1.25rem",
+                                gap: ".75rem",
                                 flexWrap: "wrap",
+                                marginBottom: "1.25rem",
                             }}
                         >
                             <FractionDisplay
@@ -293,102 +304,85 @@ function WorldWorkshop({ onComplete }) {
                             />
                             <span
                                 style={{
-                                    fontFamily: "'Baloo 2', sans-serif",
-                                    fontSize: "2rem",
+                                    fontFamily: "'Baloo 2',sans-serif",
+                                    fontSize: "1.75rem",
                                     fontWeight: 800,
                                     color: "#b45309",
                                 }}
                             >
                                 ×
                             </span>
-                            <div
-                                style={{
-                                    display: "flex",
-                                    alignItems: "baseline",
-                                    gap: "0.25rem",
-                                }}
-                            >
-                                <span
-                                    style={{
-                                        fontFamily: "'Baloo 2', sans-serif",
-                                        fontSize: "2.5rem",
-                                        fontWeight: 800,
-                                        color: "#5c3d1a",
-                                    }}
-                                >
-                                    {challenge.total}
-                                </span>
-                                <span
-                                    style={{
-                                        fontFamily: "'Nunito', sans-serif",
-                                        fontSize: "1rem",
-                                        color: "#9c6b30",
-                                        fontWeight: 600,
-                                    }}
-                                >
-                                    {challenge.unit}
-                                </span>
-                            </div>
                             <span
                                 style={{
-                                    fontFamily: "'Baloo 2', sans-serif",
+                                    fontFamily: "'Baloo 2',sans-serif",
                                     fontSize: "2rem",
+                                    fontWeight: 800,
+                                    color: "#5c3d1a",
+                                }}
+                            >
+                                {challenge.total}
+                            </span>
+                            <span
+                                style={{
+                                    fontFamily: "'Baloo 2',sans-serif",
+                                    fontSize: "1.5rem",
                                     fontWeight: 800,
                                     color: "#b45309",
                                 }}
                             >
                                 =
                             </span>
-                            <div
+                            <span
                                 style={{
-                                    display: "flex",
-                                    alignItems: "baseline",
-                                    gap: "0.25rem",
+                                    fontFamily: "'Baloo 2',sans-serif",
+                                    fontSize: "2rem",
+                                    fontWeight: 800,
+                                    color: showCorrection
+                                        ? "#059669"
+                                        : "#d97706",
                                 }}
                             >
+                                {showCorrection ? fmt(target) : "?"}
+                            </span>
+                            {showCorrection && (
                                 <span
                                     style={{
-                                        fontFamily: "'Baloo 2', sans-serif",
-                                        fontSize: "2.5rem",
-                                        fontWeight: 800,
-                                        color: showCorrection
-                                            ? "#059669"
-                                            : "#d97706",
+                                        fontFamily: "'Nunito',sans-serif",
+                                        fontSize: "1rem",
+                                        color: "#059669",
+                                        fontWeight: 600,
                                     }}
                                 >
-                                    {showCorrection ? fmt(target) : "?"}
+                                    {challenge.unit}
                                 </span>
-                                {showCorrection && (
-                                    <span
-                                        style={{
-                                            fontFamily: "'Nunito', sans-serif",
-                                            fontSize: "1rem",
-                                            color: "#059669",
-                                            fontWeight: 600,
-                                        }}
-                                    >
-                                        {challenge.unit}
-                                    </span>
-                                )}
-                            </div>
+                            )}
                         </div>
                     )}
 
-                    {/* Demi-droite */}
-                    <div style={{ marginBottom: "0.5rem" }}>
-                        <NumberLine
-                            min={0}
-                            max={challenge.total}
+                    {/* Sprint F — DualRepresentation post-réponse paliers non-unitaires */}
+                    {showCorrection && isNonUnitar ? (
+                        <DualRepresentation
+                            numerator={challenge.num}
                             denominator={challenge.den}
-                            value={answer}
-                            onChange={handleAnswer}
-                            showDecomposition
-                            disabled={showCorrection}
-                            targetValue={showCorrection ? target : null}
+                            target={target}
+                            max={challenge.total}
+                            color="#f59e0b"
                         />
-                    </div>
+                    ) : (
+                        <div style={{ marginBottom: ".5rem" }}>
+                            <NumberLine
+                                min={0}
+                                max={challenge.total}
+                                denominator={challenge.den}
+                                value={answer}
+                                onChange={handleAnswer}
+                                showDecomposition
+                                disabled={showCorrection}
+                                targetValue={showCorrection ? target : null}
+                            />
+                        </div>
+                    )}
 
-                    {/* Actions */}
                     {!showCorrection ? (
                         <div
                             className="flex justify-center"
@@ -417,11 +411,10 @@ function WorldWorkshop({ onComplete }) {
                     )}
                 </div>
 
-                {/* Barre de progression */}
                 <div
                     style={{
                         display: "flex",
-                        gap: "0.4rem",
+                        gap: ".4rem",
                         justifyContent: "center",
                         marginTop: "1.1rem",
                     }}
@@ -431,9 +424,9 @@ function WorldWorkshop({ onComplete }) {
                             key={i}
                             className={i === index ? "animate-pulse-glow" : ""}
                             style={{
-                                height: "0.4rem",
+                                height: ".4rem",
                                 borderRadius: "999px",
-                                transition: "all 0.3s",
+                                transition: "all .3s",
                                 width: i === index ? "2rem" : "1.25rem",
                                 backgroundColor:
                                     i < index
@@ -446,7 +439,6 @@ function WorldWorkshop({ onComplete }) {
                     ))}
                 </div>
             </main>
-
             <FeedbackToast feedback={feedback} />
         </div>
     );
