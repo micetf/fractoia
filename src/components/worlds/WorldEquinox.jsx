@@ -267,8 +267,8 @@ function WorldEquinox({ onComplete }) {
                         </p>
                     </div>
 
-                    {/* Affichage du % donné (paliers 1 et 2) */}
-                    {challenge.pct != null && !showCorrection && (
+                    {/* Affichage du % — seulement pour 'calcul' (le % est une donnée, pas la réponse) */}
+                    {isCalcul && !showCorrection && (
                         <div
                             style={{
                                 display: "flex",
@@ -381,21 +381,80 @@ function WorldEquinox({ onComplete }) {
                         </div>
                     )}
 
-                    {/* Affichage post-réponse */}
-                    {showCorrection && (
+                    {showCorrection && isCalcul && (
                         <div
                             style={{
                                 display: "flex",
-                                flexDirection: "column",
                                 alignItems: "center",
-                                gap: ".75rem",
+                                justifyContent: "center",
+                                gap: ".5rem",
+                                flexWrap: "wrap",
+                                padding: ".75rem",
+                                background: "rgba(14,165,233,0.1)",
+                                borderRadius: "1rem",
+                                border: `1px solid ${C.border}`,
+                            }}
+                        >
+                            <span
+                                style={{
+                                    fontFamily: "'Baloo 2',sans-serif",
+                                    fontWeight: 800,
+                                    color: "#38bdf8",
+                                    fontSize: "1.5rem",
+                                }}
+                            >
+                                {challenge.pct} %
+                            </span>
+                            <span style={{ color: C.sub, fontSize: "1.25rem" }}>
+                                ×
+                            </span>
+                            <span
+                                style={{
+                                    fontFamily: "'Baloo 2',sans-serif",
+                                    fontWeight: 800,
+                                    color: C.text,
+                                    fontSize: "1.5rem",
+                                }}
+                            >
+                                {challenge.total}
+                            </span>
+                            <span style={{ color: C.sub, fontSize: "1.25rem" }}>
+                                =
+                            </span>
+                            <span
+                                style={{
+                                    fontFamily: "'Baloo 2',sans-serif",
+                                    fontWeight: 800,
+                                    color: "#6ee7b7",
+                                    fontSize: "2rem",
+                                }}
+                            >
+                                {challenge.result}
+                            </span>
+                            <span
+                                style={{
+                                    fontFamily: "'Nunito',sans-serif",
+                                    color: C.sub,
+                                    fontSize: ".9rem",
+                                    alignSelf: "flex-end",
+                                    paddingBottom: ".25rem",
+                                }}
+                            >
+                                {challenge.unit}
+                            </span>
+                        </div>
+                    )}
+                    {showCorrection && !isCalcul && (
+                        <div
+                            style={{
+                                display: "flex",
+                                justifyContent: "center",
                             }}
                         >
                             <PercentDisplay
                                 pct={challenge.result}
                                 color="#0ea5e9"
                                 size="lg"
-                                label={`= ${challenge.result}${challenge.suffix}`}
                             />
                         </div>
                     )}
