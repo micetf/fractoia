@@ -1,45 +1,76 @@
 import FractionDisplay from "./FractionDisplay.jsx";
-import NumberLine from "./NumberLine.jsx";
 
-// ── Thème visuel Monde 7 (indigo / violet) ───────────────────────────────────
 const C = {
-    border: "rgba(165,180,252,0.3)",
-    bg: "rgba(255,255,255,0.06)",
-    sub: "#a5b4fc",
-    text: "#e0e7ff",
-    colorA: "#818cf8", // indigo — fraction A
-    colorB: "#c084fc", // violet — fraction B
+    border:  "rgba(165,180,252,0.3)",
+    bg:      "rgba(255,255,255,0.06)",
+    sub:     "#a5b4fc",
+    text:    "#e0e7ff",
+    colorA:  "#818cf8",   // indigo — fraction A
+    colorB:  "#c084fc",   // violet — fraction B
 };
 
 const btnChoice = (bg) => ({
-    padding: "0.7rem 1.4rem",
-    borderRadius: "1rem",
-    fontSize: "1rem",
-    fontWeight: 700,
+    padding: "0.7rem 1.4rem", borderRadius: "1rem",
+    fontSize: "1rem", fontWeight: 700,
     fontFamily: "'Baloo 2', sans-serif",
-    backgroundColor: bg,
-    color: "#fff",
-    border: "none",
-    cursor: "pointer",
+    backgroundColor: bg, color: "#fff",
+    border: "none", cursor: "pointer",
 });
+
+/** Mini-droite graduée SVG avec marqueurs A et B explicitement étiquetés. */
+function CompareNumberLine({ valA, valB }) {
+    const W = 400, H = 72, PAD = 40;
+    const rangeMax = Math.max(2, Math.ceil(Math.max(valA, valB)) + 1);
+    const toX = (v) => PAD + (v / rangeMax) * (W - 2 * PAD);
+
+    // Graduations entières
+    const integers = Array.from({ length: rangeMax + 1 }, (_, i) => i);
+
+    return (
+        <div aria-label={`A vaut ${valA}, B vaut ${valB}`} style={{ width: "100%" }}>
+            <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", maxHeight: "5rem", display: "block" }}>
+                {/* Axe */}
+                <line x1={PAD} y1={40} x2={W - PAD + 8} y2={40} stroke="rgba(165,180,252,0.5)" strokeWidth="2" strokeLinecap="round" />
+                <polygon points={`${W - PAD + 8},36 ${W - PAD + 16},40 ${W - PAD + 8},44`} fill="rgba(165,180,252,0.5)" />
+
+                {/* Graduations entières */}
+                {integers.map((n) => (
+                    <g key={n}>
+                        <line x1={toX(n)} y1={34} x2={toX(n)} y2={46} stroke="rgba(165,180,252,0.4)" strokeWidth={n === 0 ? 2 : 1.5} />
+                        <text x={toX(n)} y={60} textAnchor="middle" fill="rgba(165,180,252,0.7)"
+                              style={{ fontFamily: "'Baloo 2',sans-serif", fontSize: "11px", fontWeight: 700 }}>{n}</text>
+                    </g>
+                ))}
+
+                {/* Marqueur B — dessiné en premier pour que A passe devant si superposés */}
+                <line x1={toX(valB)} y1={20} x2={toX(valB)} y2={46} stroke={C.colorB} strokeWidth="2" strokeDasharray="3 2" opacity=".7" />
+                <circle cx={toX(valB)} cy={40} r={7} fill={C.colorB} />
+                <text x={toX(valB)} y={16} textAnchor="middle" fill={C.colorB}
+                      style={{ fontFamily: "'Baloo 2',sans-serif", fontSize: "12px", fontWeight: 800 }}>B</text>
+
+                {/* Marqueur A */}
+                <line x1={toX(valA)} y1={20} x2={toX(valA)} y2={46} stroke={C.colorA} strokeWidth="2" strokeDasharray="3 2" opacity=".7" />
+                <circle cx={toX(valA)} cy={40} r={7} fill={C.colorA} />
+                <text x={toX(valA)} y={16} textAnchor="middle" fill={C.colorA}
+                      style={{ fontFamily: "'Baloo 2',sans-serif", fontSize: "12px", fontWeight: 800 }}>A</text>
+            </svg>
+        </div>
+    );
+}
 
 /**
  * Interface de comparaison de deux fractions — Monde 7 (WorldBridge).
  *
- * Phase "question" :
- *   Affiche fracA (gauche) et fracB (droite) avec leurs labels A / B.
- *   Boutons : "A est plus grande" · "Égales" (conditionnel) · "B est plus grande".
+ * Phase "question" : boutons A / B / Égales.
+ * Phase "revealed" : mini-droite SVG avec marqueurs A (indigo) et B (violet)
+ *   directement étiquetés — pas de légende séparée, code couleur cohérent
+ *   avec les FractionDisplay au-dessus.
  *
- * Phase "revealed" :
- *   Les deux fractions restent visibles.
- *   Une NumberLine disabled affiche valA (marker value) et valB (marker targetValue)
- *   sur la même demi-droite — mise en correspondance visuelle immédiate.
- *
- * @param {Object}   props
- * @param {import('../../data/challenges/world2ter.js').BridgeChallenge} props.challenge
- * @param {'question'|'revealed'} props.phase
- * @param {function('A'|'B'|'equal'): void} props.onAnswer - Appelé au clic bouton
- * @param {boolean}  [props.showHint=false]
+ * @param {Object}                  props
+ * @param {Object}                  props.challenge
+ * @param {'question'|'revealed'}   props.phase
+ * @param {function}                props.onAnswer
+ * @param {boolean}                 [props.showHint=false]
  */
 function CompareQuestion({ challenge, phase, onAnswer, showHint = false }) {
     const { fracA, fracB, correct } = challenge;
@@ -47,155 +78,50 @@ function CompareQuestion({ challenge, phase, onAnswer, showHint = false }) {
     const valB = fracB.num / fracB.den;
 
     return (
-        <div
-            style={{
-                background: C.bg,
-                borderRadius: "1.25rem",
-                border: `1.5px solid ${C.border}`,
-                padding: "1.5rem 1.25rem",
-            }}
-        >
-            {/* Consigne contextuelle */}
-            <p
-                style={{
-                    fontFamily: "'Nunito', sans-serif",
-                    color: C.sub,
-                    fontSize: "0.88rem",
-                    textAlign: "center",
-                    marginBottom: "1.5rem",
-                    lineHeight: 1.5,
-                }}
-            >
+        <div style={{ background: C.bg, borderRadius: "1.25rem", border: `1.5px solid ${C.border}`, padding: "1.5rem 1.25rem" }}>
+
+            <p style={{ fontFamily: "'Nunito',sans-serif", color: C.sub, fontSize: ".88rem", textAlign: "center", marginBottom: "1.5rem", lineHeight: 1.5 }}>
                 {phase === "revealed"
-                    ? "Voici leurs positions sur la demi-droite :"
+                    ? "Leurs positions sur la demi-droite :"
                     : "Laquelle de ces deux fractions est la plus grande ?"}
             </p>
 
-            {/* Fractions A et B côte à côte */}
-            <div
-                style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "flex-end",
-                    gap: "3.5rem",
-                    marginBottom: "1.75rem",
-                }}
-            >
+            {/* Fractions A et B côte à côte — labels colorés */}
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "flex-end", gap: "3.5rem", marginBottom: "1.75rem" }}>
                 {[
                     { label: "A", frac: fracA, color: C.colorA },
                     { label: "B", frac: fracB, color: C.colorB },
                 ].map(({ label, frac, color }) => (
                     <div key={label} style={{ textAlign: "center" }}>
-                        <p
-                            style={{
-                                fontFamily: "'Baloo 2', sans-serif",
-                                fontWeight: 800,
-                                color,
-                                fontSize: "0.78rem",
-                                marginBottom: "0.4rem",
-                                letterSpacing: "0.06em",
-                            }}
-                        >
+                        <p style={{ fontFamily: "'Baloo 2',sans-serif", fontWeight: 800, color, fontSize: ".78rem", marginBottom: ".4rem", letterSpacing: ".06em" }}>
                             {label}
                         </p>
-                        <FractionDisplay
-                            numerator={frac.num}
-                            denominator={frac.den}
-                            size="lg"
-                            color={C.text}
-                            barColor={color}
-                        />
+                        <FractionDisplay numerator={frac.num} denominator={frac.den} size="lg" color={C.text} barColor={color} />
                     </div>
                 ))}
             </div>
 
-            {/* Phase question : boutons de choix */}
+            {/* Phase question — boutons */}
             {phase === "question" && (
-                <div
-                    style={{
-                        display: "flex",
-                        gap: "0.75rem",
-                        justifyContent: "center",
-                        flexWrap: "wrap",
-                    }}
-                >
-                    <button
-                        onClick={() => onAnswer("A")}
-                        style={btnChoice("#6366f1")}
-                    >
-                        A est plus grande
-                    </button>
+                <div style={{ display: "flex", gap: ".75rem", justifyContent: "center", flexWrap: "wrap" }}>
+                    <button onClick={() => onAnswer("A")} style={btnChoice(C.colorA)}>A est plus grande</button>
                     {correct === "equal" && (
-                        <button
-                            onClick={() => onAnswer("equal")}
-                            style={btnChoice("#0ea5e9")}
-                        >
-                            Égales
-                        </button>
+                        <button onClick={() => onAnswer("equal")} style={btnChoice("#0ea5e9")}>Égales</button>
                     )}
-                    <button
-                        onClick={() => onAnswer("B")}
-                        style={btnChoice("#7c3aed")}
-                    >
-                        B est plus grande
-                    </button>
+                    <button onClick={() => onAnswer("B")} style={btnChoice(C.colorB)}>B est plus grande</button>
                 </div>
             )}
 
-            {/* Phase revealed : demi-droite double — A (value) + B (targetValue) */}
+            {/* Phase revealed — droite avec A et B étiquetés dans leurs couleurs */}
             {phase === "revealed" && (
-                <div style={{ marginTop: "0.5rem" }}>
-                    <NumberLine
-                        min={0}
-                        max={2}
-                        denominator={fracA.den}
-                        value={valA}
-                        targetValue={valB}
-                        showDecomposition={false}
-                        disabled
-                        onChange={() => {}}
-                    />
-                    {/* Légende des deux marqueurs */}
-                    <div
-                        style={{
-                            display: "flex",
-                            justifyContent: "center",
-                            gap: "2rem",
-                            marginTop: "0.5rem",
-                        }}
-                    >
-                        {[
-                            { label: "A", color: C.colorA },
-                            { label: "B", color: C.colorB },
-                        ].map(({ label, color }) => (
-                            <span
-                                key={label}
-                                style={{
-                                    fontFamily: "'Nunito', sans-serif",
-                                    fontSize: "0.78rem",
-                                    color,
-                                    fontWeight: 700,
-                                }}
-                            >
-                                ● {label}
-                            </span>
-                        ))}
-                    </div>
+                <div style={{ marginTop: ".25rem" }}>
+                    <CompareNumberLine valA={valA} denA={fracA.den} valB={valB} />
                 </div>
             )}
 
-            {/* Indice — visible dès la 2e erreur, uniquement en phase question */}
+            {/* Indice */}
             {showHint && phase === "question" && (
-                <p
-                    style={{
-                        fontFamily: "'Nunito', sans-serif",
-                        color: "#fcd34d",
-                        fontSize: "0.82rem",
-                        textAlign: "center",
-                        marginTop: "1.1rem",
-                        lineHeight: 1.5,
-                    }}
-                >
+                <p style={{ fontFamily: "'Nunito',sans-serif", color: "#fcd34d", fontSize: ".82rem", textAlign: "center", marginTop: "1.1rem", lineHeight: 1.5 }}>
                     💡 {challenge.hint}
                 </p>
             )}
