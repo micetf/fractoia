@@ -1,39 +1,46 @@
 /**
  * Défis du Monde 5 — "Le Grand Festival"
+ * Sens travaillé : TOUS les sens + automatismes 6ème (BO n°16, 2026)
  *
- * Sens travaillés :
- * - Paliers 1-3 (existants) : partage · mesure · magnitude · quotient
- * - Palier 4 (Sprint B) : decimal-auto — fraction → écriture décimale
- * - Palier 5 (Sprint B) : equality-gap — compléter une égalité à trous
+ * Progression :
+ * - Palier 1 (1-2)  : révision sens partage et mesure, fractions ≤ 1
+ * - Palier 2 (3-4)  : fractions > 1 dans des sens variés
+ * - Palier 3 (5-6)  : fractions bien supérieures à 2 — consolidation finale
+ * - Palier 4 (7-9)  : decimal-auto — fraction ↔ décimale (automatismes 6ème BO)
+ * - Palier 5 (10-12): equality-gap — égalités à trous (automatismes 6ème BO)
  *
- * Sprint B — automatismes 6ème (BO n°16, 2026) :
- * Cas decimal-auto couverts (3/6 du BO) : 1/4=0,25 · 1/2=0,5 · 3/2=1,5
- * Cas equality-gap couverts (3/8 du BO) : 1/4+1/4=1/2 · 1−1/4=3/4 · 3/4+1/4=1
+ * Automatismes 6ème couverts (BO n°16, texte exact) :
+ *   fraction↔décimale : 1/4=0,25 · 3/4=0,75 · 3/2=1,5
+ *   égalités à trous  : 1/2+1/4=? · 1−1/4=? · 3/4−1/4=?
  *
- * Pour les défis decimal-auto et equality-gap :
- * - `num` / `den` représentent le RÉSULTAT attendu (target = num/den)
- * - `useFractionChallenge` reste utilisé sans modification — check(value) compare
- *   la valeur décimale saisie par l'élève via DecimalInput
- * - WorldFestival branche sur DecimalInput au lieu de NumberLine pour ces sens
+ * Interaction selon `sense` :
+ *   partage|mesure|magnitude|quotient → NumberLine (useFractionChallenge, target=num/den)
+ *   decimal-auto  → DecimalInput (même target=num/den, saisie virgule FR)
+ *   equality-gap  → DecimalInput mode choix (même target=num/den, 4 boutons fraction)
  *
- * Conventions (tous défis) :
- * - `context` : aucune notation fractionnaire — FractionDisplay affiche séparément
- * - `hint`    : écriture littérale, jamais de barre oblique
- *
- * @typedef {Object} FestivalChallenge
+ * @typedef {Object} Fraction
  * @property {number} num
  * @property {number} den
- * @property {number} max
- * @property {string} level
- * @property {string} emoji
- * @property {string} context
- * @property {string} hint
- * @property {string} sense
+ *
+ * @typedef {Object} FestivalChallenge
+ * @property {number}   num
+ * @property {number}   den
+ * @property {number}   max
+ * @property {string}   level
+ * @property {string}   emoji
+ * @property {string}   context
+ * @property {string}   hint
+ * @property {string}   sense
+ * @property {number|null}  [eqWhole]   - equality-gap : entier du membre gauche
+ * @property {Fraction|null} [eqA]      - equality-gap : première fraction (ou null)
+ * @property {string}       [eqOp]     - equality-gap : opérateur "+" | "−"
+ * @property {Fraction}     [eqB]      - equality-gap : deuxième fraction
+ * @property {Fraction[]}   [choices]  - equality-gap : 4 choix de réponse
  */
 
 /** @type {FestivalChallenge[]} */
 export const WORLD5_CHALLENGES = [
-    // ── Palier 1 : révision des sens connus, fractions ≤ 1 ──────────────────
+    // ── Palier 1 : révision sens connus, fractions ≤ 1 ──────────────────────
     {
         num: 2,
         den: 3,
@@ -76,8 +83,8 @@ export const WORLD5_CHALLENGES = [
         level: "6e",
         emoji: "🎪",
         context:
-            "5 chapiteaux à partager entre 3 troupes. Chaque troupe reçoit plus d'un chapiteau entier !",
-        hint: "Cinq tiers, c'est 1 entier et encore deux tiers — cherche juste après 1, entre 1 et 2.",
+            "L'acrobate traverse la scène 5 fois en 3 secondes. Combien de longueurs de scène parcourt-il chaque seconde ?",
+        hint: "Cinq tiers, c'est 1 longueur entière et encore deux tiers — cherche entre 1 et 2.",
         sense: "quotient",
     },
 
@@ -87,47 +94,46 @@ export const WORLD5_CHALLENGES = [
         den: 4,
         max: 4,
         level: "6e",
-        emoji: "🎠",
+        emoji: "🔭",
         context:
-            "Le carrousel fait des tours. Après neuf quarts de tour, il a dépassé les deux premiers tours complets.",
-        hint: "Neuf quarts, c'est 2 tours entiers et encore un quart — cherche juste après 2.",
+            "L'astronome du festival pointe sa lunette : l'étoile filante a parcouru neuf quarts de la largeur du ciel visible.",
+        hint: "Neuf quarts, c'est 2 entiers et encore un quart — passe la graduation 2 et avance d'un petit pas.",
         sense: "magnitude",
     },
     {
-        num: 7,
+        num: 8,
         den: 3,
         max: 4,
         level: "6e",
-        emoji: "🎻",
+        emoji: "🎠",
         context:
-            "7 violons à distribuer entre 3 musiciens. Chacun reçoit bien plus que deux instruments.",
-        hint: "Sept tiers, c'est 2 entiers et encore un tiers — cherche juste après 2.",
+            "Le manège tourne : en 3 minutes il fait exactement 1 tour. Après 8 minutes, combien de tours a-t-il parcourus ?",
+        hint: "Huit tiers, c'est 2 tours entiers et encore deux tiers — cherche entre 2 et 3, à deux tiers du chemin.",
         sense: "quotient",
     },
 
-    // ── Palier 4 : automatisme fraction→décimale (Sprint B, BO n°16) ────────
-    // FractionDisplay montre la fraction ; l'élève tape l'écriture décimale FR.
-    // Cas couverts : 1/4=0,25 · 1/2=0,5 · 3/2=1,5
+    // ── Palier 4 : automatismes fraction↔décimale (BO n°16, 2026) ───────────
+    // target = num/den = valeur décimale attendue — useFractionChallenge inchangé
     {
         num: 1,
         den: 4,
         max: 2,
         level: "6e",
-        emoji: "🎹",
+        emoji: "🎟️",
         context:
-            "Le premier acte dure un quart de la soirée. Écris cette durée sous forme décimale.",
-        hint: "Un quart s'écrit zéro virgule vingt-cinq.",
+            "Le régisseur a vendu un quart des billets du festival. Écris cette fraction sous forme décimale.",
+        hint: "Un quart, c'est zéro virgule vingt-cinq — divise 1 par 4.",
         sense: "decimal-auto",
     },
     {
-        num: 1,
-        den: 2,
+        num: 3,
+        den: 4,
         max: 2,
         level: "6e",
-        emoji: "🥁",
+        emoji: "🏟️",
         context:
-            "L'entracte occupe une demie de la soirée. Écris cette durée sous forme décimale.",
-        hint: "Une demie s'écrit zéro virgule cinq.",
+            "Les gradins sont remplis aux trois quarts. Écris cette proportion sous forme décimale.",
+        hint: "Trois quarts, c'est zéro virgule soixante-quinze — la moitié plus un quart.",
         sense: "decimal-auto",
     },
     {
@@ -135,48 +141,76 @@ export const WORLD5_CHALLENGES = [
         den: 2,
         max: 3,
         level: "6e",
-        emoji: "🎺",
+        emoji: "🌙",
         context:
-            "Le bis dure trois demies de soirée — plus d'une soirée entière ! Écris cela sous forme décimale.",
-        hint: "Trois demies s'écrit un virgule cinq — une soirée et encore une demie.",
+            "Le festival dure trois demis journées. Écris cette durée sous forme décimale.",
+        hint: "Trois demis, c'est un virgule cinq — un entier et encore une demie journée.",
         sense: "decimal-auto",
     },
 
-    // ── Palier 5 : égalités à trous (Sprint B, BO n°16) ────────────────────
-    // num/den = RÉSULTAT de l'égalité. Résultats distincts : 0,5 · 0,75 · 1,0
-    // L'élève saisit le résultat en écriture décimale via DecimalInput.
-    // Cas couverts : 1/4+1/4=1/2 · 1−1/4=3/4 · 3/4+1/4=1
+    // ── Palier 5 : automatismes égalités à trous (BO n°16, 2026) ────────────
+    // num/den = réponse correcte ; choices = 4 options boutons
     {
-        num: 1,
-        den: 2,
+        num: 3,
+        den: 4,
         max: 2,
         level: "6e",
-        emoji: "🎸",
+        emoji: "🎶",
         context:
-            "Deux sets de guitare : le premier dure un quart de soirée, le second aussi. Quelle fraction de la soirée ont-ils joué au total ? Donne la réponse en écriture décimale.",
-        hint: "Un quart plus un quart, c'est deux quarts — soit une demie, soit zéro virgule cinq.",
+            "Le jongleur a lancé la moitié de ses torches, puis encore un quart. Quelle fraction a-t-il lancée en tout ?",
+        hint: "Un demi et un quart — le demi vaut deux quarts, donc deux quarts plus un quart font trois quarts.",
         sense: "equality-gap",
+        eqWhole: null,
+        eqA: { num: 1, den: 2 },
+        eqOp: "+",
+        eqB: { num: 1, den: 4 },
+        choices: [
+            { num: 3, den: 4 },
+            { num: 1, den: 2 },
+            { num: 1, den: 4 },
+            { num: 2, den: 6 },
+        ],
     },
     {
         num: 3,
         den: 4,
         max: 2,
         level: "6e",
-        emoji: "🪗",
+        emoji: "💡",
         context:
-            "La soirée entière est planifiée. Les discours prennent un quart du temps. Quelle fraction reste-t-il pour la fête ? Donne la réponse en écriture décimale.",
-        hint: "Un entier moins un quart, c'est trois quarts — soit zéro virgule soixante-quinze.",
+            "La scène était entièrement éclairée. On a éteint un quart des projecteurs. Quelle fraction reste allumée ?",
+        hint: "Un entier vaut quatre quarts. Quatre quarts moins un quart, c'est trois quarts.",
         sense: "equality-gap",
+        eqWhole: 1,
+        eqA: null,
+        eqOp: "−",
+        eqB: { num: 1, den: 4 },
+        choices: [
+            { num: 3, den: 4 },
+            { num: 5, den: 4 },
+            { num: 1, den: 4 },
+            { num: 1, den: 2 },
+        ],
     },
     {
-        num: 4,
-        den: 4,
+        num: 1,
+        den: 2,
         max: 2,
         level: "6e",
-        emoji: "🎙️",
+        emoji: "🎺",
         context:
-            "Le premier DJ joue trois quarts de la nuit, le second prend le relai pour un quart. Ensemble, combien font-ils ? Donne la réponse en écriture décimale.",
-        hint: "Trois quarts plus un quart, c'est quatre quarts — c'est exactement un entier, soit un virgule zéro.",
+            "Le traiteur avait préparé trois quarts du repas. Il en a déjà servi un quart. Quelle fraction reste à servir ?",
+        hint: "Trois quarts moins un quart — même dénominateur, soustrait les numérateurs : trois moins un, c'est deux quarts, soit un demi.",
         sense: "equality-gap",
+        eqWhole: null,
+        eqA: { num: 3, den: 4 },
+        eqOp: "−",
+        eqB: { num: 1, den: 4 },
+        choices: [
+            { num: 1, den: 2 },
+            { num: 1, den: 4 },
+            { num: 3, den: 4 },
+            { num: 2, den: 8 },
+        ],
     },
 ];
