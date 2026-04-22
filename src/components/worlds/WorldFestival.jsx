@@ -45,9 +45,12 @@ const SENSE_BADGE = {
 /**
  * Monde 5 "Le Grand Festival" — synthèse des 4 sens + automatismes 6ème.
  *
- * Sprint B : ajout des sens "decimal-auto" et "equality-gap".
- * Ces deux sens utilisent `DecimalInput` à la place de `NumberLine`.
- * La logique de validation (`runCheck`) est partagée entre les trois modes.
+ * Sprint B — deux nouveaux modes via `sense` :
+ *   decimal-auto  → DecimalInput (onChange) + bouton Valider du parent
+ *   equality-gap  → équation + 4 boutons fraction inline (validation immédiate)
+ *
+ * Interface DecimalInput : onChange(float|null) à chaque frappe → stocké dans `answer`.
+ * Clé `key={index}` sur DecimalInput pour réinitialiser l'input à chaque défi.
  *
  * @param {{ onComplete?: function }} props
  */
@@ -55,7 +58,6 @@ function WorldFestival({ onComplete }) {
     const [answer, setAnswer] = useState(null);
     const [showCorrection, setShowCorrection] = useState(false);
     const [starsEarned, setStarsEarned] = useState(0);
-    const [showHintFlag, setShowHintFlag] = useState(false);
 
     const { feedback, showSuccess, showError, showHint } = useFeedback();
     const { challenge, index, total, done, check, next, reset } =
@@ -63,22 +65,21 @@ function WorldFestival({ onComplete }) {
     const { recordResult } = useGameProgression();
 
     const sense = challenge?.sense ?? "partage";
-    const isAutomatism = sense === "decimal-auto" || sense === "equality-gap";
+    const isEquality = sense === "equality-gap";
+    const isDecimal = sense === "decimal-auto";
+    const isStandard = !isDecimal && !isEquality;
     const showDecomp =
-        !isAutomatism && challenge ? challenge.num > challenge.den : false;
-    const showBar = sense === "partage";
+        isStandard && challenge ? challenge.num > challenge.den : false;
     const badge = challenge ? (SENSE_BADGE[sense] ?? null) : null;
 
-    /** Logique de validation partagée entre NumberLine, DecimalInput et choix fraction. */
+    /** Logique de validation partagée — cible = num/den (useFractionChallenge). */
     const runCheck = useCallback(
         (floatValue) => {
             if (showCorrection) return;
             const { correct, attempts, showHint: needHint } = check(floatValue);
             if (correct) {
-                const stars = attempts === 1 ? 3 : attempts === 2 ? 2 : 1;
-                setStarsEarned(stars);
+                setStarsEarned(attempts === 1 ? 3 : attempts === 2 ? 2 : 1);
                 setShowCorrection(true);
-                setShowHintFlag(false);
                 recordResult(5, index, true, attempts);
                 showSuccess(
                     attempts === 1
@@ -87,12 +88,11 @@ function WorldFestival({ onComplete }) {
                 );
             } else {
                 if (needHint) {
-                    setShowHintFlag(true);
                     showHint(`${challenge.emoji} ${challenge.hint}`);
                 } else {
                     showError("Pas tout à fait… Lis bien la situation !");
+                    setAnswer(null);
                 }
-                setAnswer(null);
             }
         },
         [
@@ -115,23 +115,26 @@ function WorldFestival({ onComplete }) {
     );
     const handleValidate = useCallback(() => {
         if (answer === null) {
-            showHint("Clique sur la droite pour placer ta fraction !");
+            showHint(
+                isDecimal
+                    ? "Entre un nombre décimal avec une virgule !"
+                    : "Clique sur la droite pour placer ta fraction !"
+            );
             return;
         }
         runCheck(answer);
-    }, [answer, showHint, runCheck]);
+    }, [answer, isDecimal, showHint, runCheck]);
+
     const handleNext = useCallback(() => {
         setAnswer(null);
         setShowCorrection(false);
         setStarsEarned(0);
-        setShowHintFlag(false);
         next();
     }, [next]);
     const handleReset = useCallback(() => {
         setAnswer(null);
         setShowCorrection(false);
         setStarsEarned(0);
-        setShowHintFlag(false);
         reset();
     }, [reset]);
 
@@ -266,7 +269,6 @@ function WorldFestival({ onComplete }) {
                         boxShadow: "0 8px 32px -4px rgba(0,0,0,0.6)",
                     }}
                 >
-                    {/* Badge sens */}
                     {badge && (
                         <div
                             style={{
@@ -285,7 +287,6 @@ function WorldFestival({ onComplete }) {
                         </div>
                     )}
 
-                    {/* Contexte */}
                     <div
                         style={{
                             display: "flex",
@@ -310,8 +311,7 @@ function WorldFestival({ onComplete }) {
                         </p>
                     </div>
 
-                    {/* FractionBar — sens partage uniquement */}
-                    {showBar && (
+                    {sense === "partage" && (
                         <div style={{ marginBottom: "1.25rem" }}>
                             <FractionBar
                                 numerator={challenge.num}
@@ -323,67 +323,174 @@ function WorldFestival({ onComplete }) {
                         </div>
                     )}
 
-                    {/* Mode automatismes — DecimalInput (decimal-auto ou equality-gap) */}
-                    {isAutomatism && !showCorrection && (
-                        <DecimalInput
-                            challenge={challenge}
-                            onValidate={runCheck}
-                            disabled={showCorrection}
-                            showHint={showHintFlag}
-                        />
+                    {!isEquality && (
+                        <div
+                            style={{
+                                textAlign: "center",
+                                marginBottom: "1.25rem",
+                            }}
+                        >
+                            <FractionDisplay
+                                numerator={challenge.num}
+                                denominator={challenge.den}
+                                size="lg"
+                                color="#fdf4ff"
+                                barColor="#f0abfc"
+                            />
+                        </div>
                     )}
 
-                    {/* Mode standard — FractionDisplay + NumberLine */}
-                    {!isAutomatism && (
+                    {isStandard && (
+                        <div style={{ marginBottom: ".5rem" }}>
+                            <NumberLine
+                                min={0}
+                                max={challenge.max}
+                                denominator={challenge.den}
+                                value={answer}
+                                onChange={handleAnswer}
+                                showDecomposition={showDecomp}
+                                disabled={showCorrection}
+                                targetValue={
+                                    showCorrection
+                                        ? challenge.num / challenge.den
+                                        : null
+                                }
+                            />
+                        </div>
+                    )}
+
+                    {isDecimal && !showCorrection && (
+                        <div
+                            style={{
+                                display: "flex",
+                                justifyContent: "center",
+                                marginBottom: ".5rem",
+                            }}
+                        >
+                            <DecimalInput key={index} onChange={handleAnswer} />
+                        </div>
+                    )}
+
+                    {isEquality && !showCorrection && (
                         <>
                             <div
                                 style={{
-                                    textAlign: "center",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    gap: ".5rem",
+                                    flexWrap: "wrap",
                                     marginBottom: "1.25rem",
                                 }}
                             >
+                                {challenge.eqWhole != null && (
+                                    <span
+                                        style={{
+                                            fontFamily: "'Baloo 2',sans-serif",
+                                            fontSize: "2rem",
+                                            fontWeight: 800,
+                                            color: "#fdf4ff",
+                                        }}
+                                    >
+                                        {challenge.eqWhole}
+                                    </span>
+                                )}
+                                {challenge.eqA && (
+                                    <FractionDisplay
+                                        numerator={challenge.eqA.num}
+                                        denominator={challenge.eqA.den}
+                                        size="lg"
+                                        color="#fdf4ff"
+                                        barColor="#f0abfc"
+                                    />
+                                )}
+                                <span
+                                    style={{
+                                        fontFamily: "'Baloo 2',sans-serif",
+                                        fontSize: "1.75rem",
+                                        fontWeight: 800,
+                                        color: "#f0abfc",
+                                    }}
+                                >
+                                    {challenge.eqOp}
+                                </span>
                                 <FractionDisplay
-                                    numerator={challenge.num}
-                                    denominator={challenge.den}
+                                    numerator={challenge.eqB.num}
+                                    denominator={challenge.eqB.den}
                                     size="lg"
                                     color="#fdf4ff"
                                     barColor="#f0abfc"
                                 />
-                            </div>
-                            <div style={{ marginBottom: ".5rem" }}>
-                                <NumberLine
-                                    min={0}
-                                    max={challenge.max}
-                                    denominator={challenge.den}
-                                    value={answer}
-                                    onChange={handleAnswer}
-                                    showDecomposition={showDecomp}
-                                    disabled={showCorrection}
-                                    targetValue={
-                                        showCorrection
-                                            ? challenge.num / challenge.den
-                                            : null
-                                    }
-                                />
-                            </div>
-                            {!showCorrection && (
-                                <div
-                                    className="flex justify-center"
-                                    style={{ marginTop: "1.5rem" }}
+                                <span
+                                    style={{
+                                        fontFamily: "'Baloo 2',sans-serif",
+                                        fontSize: "1.75rem",
+                                        fontWeight: 800,
+                                        color: "#f0abfc",
+                                    }}
                                 >
+                                    =
+                                </span>
+                                <span
+                                    style={{
+                                        fontFamily: "'Baloo 2',sans-serif",
+                                        fontSize: "2rem",
+                                        fontWeight: 800,
+                                        color: "#fbbf24",
+                                    }}
+                                >
+                                    ?
+                                </span>
+                            </div>
+                            <div
+                                style={{
+                                    display: "flex",
+                                    gap: ".75rem",
+                                    justifyContent: "center",
+                                    flexWrap: "wrap",
+                                }}
+                            >
+                                {challenge.choices.map((c, i) => (
                                     <button
-                                        onClick={handleValidate}
-                                        style={BTN_VALIDATE}
-                                        className="animate-pulse-glow"
+                                        key={i}
+                                        onClick={() => runCheck(c.num / c.den)}
+                                        style={{
+                                            padding: ".6rem 1rem",
+                                            borderRadius: ".875rem",
+                                            border: "1.5px solid rgba(240,171,252,0.3)",
+                                            background:
+                                                "rgba(255,255,255,0.06)",
+                                            cursor: "pointer",
+                                        }}
                                     >
-                                        Valider ✓
+                                        <FractionDisplay
+                                            numerator={c.num}
+                                            denominator={c.den}
+                                            size="md"
+                                            color="#fdf4ff"
+                                            barColor="#f0abfc"
+                                        />
                                     </button>
-                                </div>
-                            )}
+                                ))}
+                            </div>
                         </>
                     )}
 
-                    {/* Post-réponse */}
+                    {!showCorrection && !isEquality && (
+                        <div
+                            className="flex justify-center"
+                            style={{ marginTop: "1.5rem" }}
+                        >
+                            <button
+                                onClick={handleValidate}
+                                style={BTN_VALIDATE}
+                                className="animate-pulse-glow"
+                            >
+                                Valider ✓
+                            </button>
+                        </div>
+                    )}
+
                     {showCorrection && (
                         <div
                             className="flex flex-col items-center animate-float-up"
@@ -399,7 +506,6 @@ function WorldFestival({ onComplete }) {
                     )}
                 </div>
 
-                {/* Barre de progression */}
                 <div
                     style={{
                         display: "flex",
