@@ -7,24 +7,21 @@ import WorldGranary from "./components/worlds/WorldGranary.jsx";
 import WorldBridge from "./components/worlds/WorldBridge.jsx";
 import WorldRoad from "./components/worlds/WorldRoad.jsx";
 import WorldMarket from "./components/worlds/WorldMarket.jsx";
+import WorldEquinox from "./components/worlds/WorldEquinox.jsx";
 import WorldFestival from "./components/worlds/WorldFestival.jsx";
 import WorldMap from "./components/layout/WorldMap.jsx";
 import TeacherDashboard from "./components/layout/TeacherDashboard.jsx";
 
 /**
- * Routeur interne — consomme le Context GameProgressionProvider.
- *
  * Chaîne d'unlock :
- *   WorldFarm (1) → WorldWorkshop (2) → WorldGranary (6)
- *   → WorldBridge (7) → WorldRoad (3) → WorldMarket (4) → WorldFestival (5)
+ *   Farm(1) → Workshop(2) → Granary(6) → Bridge(7)
+ *   → Road(3) → Market(4) → Equinox(8) → Festival(5)
  */
 function AppRouter() {
     const [screen, setScreen] = useState("map");
     const { unlockWorld } = useGameProgression();
 
     const goMap = () => setScreen("map");
-    const goTo = (id) => setScreen(id);
-
     const handleComplete = (nextWorldId) => {
         if (nextWorldId) unlockWorld(nextWorldId);
         goMap();
@@ -41,16 +38,18 @@ function AppRouter() {
     if (screen === "road")
         return <WorldRoad onComplete={() => handleComplete(4)} />;
     if (screen === "market")
-        return <WorldMarket onComplete={() => handleComplete(5)} />;
+        return <WorldMarket onComplete={() => handleComplete(8)} />;
+    if (screen === "equinox")
+        return <WorldEquinox onComplete={() => handleComplete(5)} />;
     if (screen === "festival")
         return <WorldFestival onComplete={() => handleComplete()} />;
     if (screen === "dashboard") return <TeacherDashboard onClose={goMap} />;
 
     return (
         <div style={{ position: "relative" }}>
-            <WorldMap onSelect={goTo} />
+            <WorldMap onSelect={setScreen} />
             <button
-                onClick={() => goTo("dashboard")}
+                onClick={() => setScreen("dashboard")}
                 title="Tableau de bord enseignant"
                 style={{
                     position: "fixed",
@@ -63,7 +62,7 @@ function AppRouter() {
                     background: "rgba(255,255,255,0.92)",
                     backdropFilter: "blur(8px)",
                     color: "#5c3d1a",
-                    fontFamily: "'Baloo 2', sans-serif",
+                    fontFamily: "'Baloo 2',sans-serif",
                     fontWeight: 700,
                     fontSize: ".78rem",
                     cursor: "pointer",
@@ -76,10 +75,6 @@ function AppRouter() {
     );
 }
 
-/**
- * Point d'entrée de FRACTOÏA.
- * GameProgressionProvider garantit une instance unique de useGameProgression.
- */
 function App() {
     return (
         <GameProgressionProvider>
