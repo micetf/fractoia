@@ -20,11 +20,10 @@ const PAD = 44;
 /**
  * Demi-droite graduée SVG interactive — pièce maîtresse de FRACTOÏA.
  *
- * Sprint G — accessibilité WCAG 2.1 AA :
- *   - role="slider" + aria-valuemin/max/now/valuetext
- *   - tabIndex={0} quand actif → focusable au clavier
- *   - onKeyDown : ← recule d'un tick, → avance d'un tick
- *   - focus-visible : outline visible (ring bleu)
+ * Sprint G : role="slider" + navigation clavier ← →
+ * Sprint H : pointer events (touch natif tablette), touch-action: none,
+ *   setPointerCapture pour suivi hors SVG, hitbox étendue implicite
+ *   (SVG full-width ≥ 44px de hauteur → cible tactile OK).
  *
  * @param {NumberLineProps} props
  */
@@ -39,6 +38,7 @@ function NumberLine({
     targetValue = null,
 }) {
     const svgRef = useRef(null);
+    const dragging = useRef(false);
     const [hoverX, setHoverX] = useState(null);
     const [focused, setFocused] = useState(false);
 
@@ -63,18 +63,41 @@ function NumberLine({
         return r ? ((clientX - r.left) / r.width) * VIEW_W : 0;
     }, []);
 
-    const handleClick = (e) => {
-        if (!disabled) onChange?.(toSnapped(getSvgX(e.clientX)));
-    };
-    const handleMove = (e) => {
-        if (!disabled) setHoverX(getSvgX(e.clientX));
-    };
-
-    /** Navigation clavier — ← recule d'un tick, → avance d'un tick. */
-    const handleKeyDown = useCallback(
+    // ── Pointer events (souris + touch) ─────────────────────────────
+    const handlePointerDown = useCallback(
         (e) => {
             if (disabled) return;
-            if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+            e.currentTarget.setPointerCapture(e.pointerId);
+            dragging.current = true;
+            onChange?.(toSnapped(getSvgX(e.clientX)));
+        },
+        [disabled, onChange, toSnapped, getSvgX]
+    );
+
+    const handlePointerMove = useCallback(
+        (e) => {
+            if (disabled) return;
+            const sx = getSvgX(e.clientX);
+            if (dragging.current) onChange?.(toSnapped(sx));
+            else setHoverX(sx);
+        },
+        [disabled, onChange, toSnapped, getSvgX]
+    );
+
+    const handlePointerUp = useCallback((e) => {
+        dragging.current = false;
+        e.currentTarget.releasePointerCapture?.(e.pointerId);
+    }, []);
+
+    const handlePointerLeave = useCallback(() => {
+        if (!dragging.current) setHoverX(null);
+    }, []);
+
+    // ── Navigation clavier ← → (Sprint G) ───────────────────────────
+    const handleKeyDown = useCallback(
+        (e) => {
+            if (disabled || (e.key !== "ArrowLeft" && e.key !== "ArrowRight"))
+                return;
             e.preventDefault();
             const step = 1 / denominator;
             const cur = value ?? min;
@@ -110,7 +133,8 @@ function NumberLine({
             : { ip, fn, d: denominator, num: Math.round(value * denominator) };
     })();
 
-    const ghostVal = hoverX !== null ? toSnapped(hoverX) : null;
+    const ghostVal =
+        hoverX !== null && !dragging.current ? toSnapped(hoverX) : null;
     const valueText =
         value !== null
             ? `${Math.round(value * denominator)} sur ${denominator}`
@@ -122,9 +146,10 @@ function NumberLine({
                 ref={svgRef}
                 viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
                 className={`w-full ${disabled ? "cursor-default opacity-70" : "cursor-crosshair"}`}
-                onClick={handleClick}
-                onMouseMove={handleMove}
-                onMouseLeave={() => setHoverX(null)}
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerLeave={handlePointerLeave}
                 onFocus={() => setFocused(true)}
                 onBlur={() => setFocused(false)}
                 onKeyDown={handleKeyDown}
@@ -136,15 +161,16 @@ function NumberLine({
                 aria-valuetext={valueText}
                 aria-label="Demi-droite graduée — utilise les flèches ← → pour déplacer"
                 aria-disabled={disabled}
-                style={
-                    focused && !disabled
+                style={{
+                    touchAction: "none",
+                    ...(focused && !disabled
                         ? {
                               outline: "3px solid #3b82f6",
                               outlineOffset: "3px",
                               borderRadius: "6px",
                           }
-                        : {}
-                }
+                        : { outline: "none" }),
+                }}
             >
                 {/* Bandes alternées */}
                 {Array.from({ length: max - min }, (_, i) => (
@@ -204,7 +230,7 @@ function NumberLine({
                     </g>
                 ))}
 
-                {/* Cible en mode correction */}
+                {/* Cible correction */}
                 {targetValue !== null && (
                     <line
                         x1={toX(targetValue)}

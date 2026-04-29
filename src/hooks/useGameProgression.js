@@ -7,6 +7,7 @@ const INIT = {
     worlds: [1, 2, 6, 7, 3, 4, 8, 5].map((id) => ({
         worldId: id,
         results: [],
+        errorBiases: [], // Sprint H — historique des biais cognitifs rencontrés
         unlocked: id === 1,
         stars: 0,
     })),
@@ -28,7 +29,10 @@ const GameProgressionContext = createContext(null);
 
 /**
  * Provider racine — instance unique partagée entre tous les composants.
- * Ordre INIT : 1→2→6→7→3→4→8→5 (chaîne d'unlock réelle)
+ *
+ * Sprint H : `recordError(worldId, bias)` enregistre un biais cognitif
+ * déclenché. Les doublons sont ignorés (Set sémantique).
+ * Lecture via `getWorldProgress(id).errorBiases`.
  */
 export function GameProgressionProvider({ children }) {
     const [gameState, setGameState, resetGame] = useLocalStorage(
@@ -61,6 +65,27 @@ export function GameProgressionProvider({ children }) {
         [setGameState]
     );
 
+    /**
+     * Enregistre un biais cognitif déclenché dans un monde.
+     * @param {number} worldId
+     * @param {string} bias  - Code errorBias (ex: "larger-denom-bigger")
+     */
+    const recordError = useCallback(
+        (worldId, bias) => {
+            if (!bias) return;
+            setGameState((prev) => ({
+                ...prev,
+                worlds: prev.worlds.map((w) => {
+                    if (w.worldId !== worldId) return w;
+                    const biases = w.errorBiases ?? [];
+                    if (biases.includes(bias)) return w;
+                    return { ...w, errorBiases: [...biases, bias] };
+                }),
+            }));
+        },
+        [setGameState]
+    );
+
     const unlockWorld = useCallback(
         (worldId) => {
             setGameState((prev) => ({
@@ -86,6 +111,7 @@ export function GameProgressionProvider({ children }) {
             value: {
                 gameState,
                 recordResult,
+                recordError,
                 unlockWorld,
                 getWorldProgress,
                 resetGame,

@@ -3,11 +3,12 @@ import { useGameProgression } from "../../hooks/useGameProgression.js";
 import ProgressStars from "../ui/ProgressStars.jsx";
 import SenseBreakdown from "../ui/SenseBreakdown.jsx";
 import AboutPrograms from "../ui/AboutPrograms.jsx";
+import ExportSummary from "../ui/ExportSummary.jsx";
+import { ERROR_MESSAGES } from "../../data/errorMessages.js";
 import { WORLD2_CHALLENGES } from "../../data/challenges/world2.js";
 import { WORLD2BIS_CHALLENGES } from "../../data/challenges/world2bis.js";
 import { WORLD5_CHALLENGES } from "../../data/challenges/world5.js";
 
-// Sprint D : worldId 8 (La Fête de l'Équinoxe) ajouté entre Market (4) et Festival (5).
 const WORLDS_META = [
     {
         id: 1,
@@ -99,6 +100,7 @@ const Bar = ({ pct, color }) => (
 function WorldRow({ meta, data }) {
     const { rate, avg, n } = calcStats(data.results);
     const done = data.stars > 0;
+    const biases = data.errorBiases ?? [];
     return (
         <div
             style={{
@@ -172,6 +174,37 @@ function WorldRow({ meta, data }) {
                     </span>
                 </div>
             )}
+            {/* Biais cognitifs détectés — Sprint H */}
+            {biases.length > 0 && (
+                <div
+                    style={{
+                        marginTop: ".4rem",
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: ".3rem",
+                    }}
+                >
+                    {biases.map((b) => (
+                        <span
+                            key={b}
+                            title={ERROR_MESSAGES[b]?.body}
+                            style={{
+                                fontFamily: "'Nunito',sans-serif",
+                                fontSize: ".6rem",
+                                fontWeight: 700,
+                                color: "#92400e",
+                                background: "#fef3c7",
+                                border: "1px solid #fcd34d",
+                                borderRadius: "999px",
+                                padding: "1px 7px",
+                                cursor: "help",
+                            }}
+                        >
+                            ⚠️ {ERROR_MESSAGES[b]?.title ?? b}
+                        </span>
+                    ))}
+                </div>
+            )}
         </div>
     );
 }
@@ -180,6 +213,7 @@ function TeacherDashboard({ onClose }) {
     const { gameState, resetGame } = useGameProgression();
     const { totalStars, worlds } = gameState;
     const [aboutOpen, setAboutOpen] = useState(false);
+    const [printOpen, setPrintOpen] = useState(false);
 
     const allR = worlds.flatMap((w) => w.results);
     const done = worlds.filter((w) => w.stars > 0).length;
@@ -190,10 +224,17 @@ function TeacherDashboard({ onClose }) {
     const world6 = worlds.find((w) => w.worldId === 6);
     const world5 = worlds.find((w) => w.worldId === 5);
 
+    const allBiases = worlds.flatMap((w) => w.errorBiases ?? []);
+    const uniqueBiases = [...new Set(allBiases)];
+
     const handleReset = () =>
         window.confirm(
             "Effacer toute la progression ? Cette action est irréversible."
         ) && resetGame();
+    const handlePrint = () => {
+        setPrintOpen(true);
+        setTimeout(() => window.print(), 200);
+    };
 
     return (
         <div
@@ -243,24 +284,42 @@ function TeacherDashboard({ onClose }) {
                             FRACTOÏA · Vue enseignant
                         </p>
                     </div>
-                    {onClose && (
+                    <div style={{ display: "flex", gap: ".5rem" }}>
                         <button
-                            onClick={onClose}
+                            onClick={handlePrint}
                             style={{
-                                padding: ".45rem 1rem",
+                                padding: ".45rem .875rem",
                                 borderRadius: ".75rem",
                                 border: "1.5px solid #e8cfa4",
                                 background: "#fff",
                                 color: "#5c3d1a",
-                                fontFamily: "'Baloo 2',sans-serif",
-                                fontWeight: 700,
+                                fontFamily: "'Nunito',sans-serif",
+                                fontWeight: 600,
                                 cursor: "pointer",
-                                fontSize: ".8rem",
+                                fontSize: ".78rem",
                             }}
                         >
-                            ← Retour
+                            🖨️ Imprimer
                         </button>
-                    )}
+                        {onClose && (
+                            <button
+                                onClick={onClose}
+                                style={{
+                                    padding: ".45rem 1rem",
+                                    borderRadius: ".75rem",
+                                    border: "1.5px solid #e8cfa4",
+                                    background: "#fff",
+                                    color: "#5c3d1a",
+                                    fontFamily: "'Baloo 2',sans-serif",
+                                    fontWeight: 700,
+                                    cursor: "pointer",
+                                    fontSize: ".8rem",
+                                }}
+                            >
+                                ← Retour
+                            </button>
+                        )}
+                    </div>
                 </header>
 
                 {allR.length === 0 && (
@@ -283,6 +342,7 @@ function TeacherDashboard({ onClose }) {
                     </div>
                 )}
 
+                {/* Résumé global */}
                 <div
                     style={{
                         display: "grid",
@@ -338,6 +398,7 @@ function TeacherDashboard({ onClose }) {
                     ))}
                 </div>
 
+                {/* Lignes par monde */}
                 <div
                     style={{
                         display: "flex",
@@ -352,6 +413,58 @@ function TeacherDashboard({ onClose }) {
                         ) : null;
                     })}
                 </div>
+
+                {/* Carte des obstacles globaux — Sprint H */}
+                {uniqueBiases.length > 0 && (
+                    <div
+                        style={{
+                            background: "#fffbeb",
+                            border: "1.5px solid #fcd34d",
+                            borderRadius: "1rem",
+                            padding: ".875rem 1rem",
+                        }}
+                    >
+                        <p
+                            style={{
+                                fontFamily: "'Baloo 2',sans-serif",
+                                fontWeight: 800,
+                                fontSize: ".85rem",
+                                color: "#92400e",
+                                margin: "0 0 .5rem",
+                            }}
+                        >
+                            🔍 Obstacles cognitifs détectés
+                        </p>
+                        <div
+                            style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: ".4rem",
+                            }}
+                        >
+                            {uniqueBiases.map((b) => {
+                                const msg = ERROR_MESSAGES[b];
+                                if (!msg) return null;
+                                return (
+                                    <div
+                                        key={b}
+                                        style={{
+                                            fontSize: ".72rem",
+                                            fontFamily: "'Nunito',sans-serif",
+                                            color: "#7a5c3a",
+                                            lineHeight: 1.5,
+                                        }}
+                                    >
+                                        <strong style={{ color: "#92400e" }}>
+                                            {msg.title}
+                                        </strong>{" "}
+                                        — {msg.body.replace(/🔍\s?/, "")}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
 
                 {world2?.results?.length > 0 && (
                     <SenseBreakdown
@@ -373,6 +486,16 @@ function TeacherDashboard({ onClose }) {
                         challenges={WORLD5_CHALLENGES}
                         title="🎪 Grand Festival — détail par sens"
                     />
+                )}
+
+                {/* Fiche imprimable — masquée à l'écran, visible uniquement via print */}
+                {printOpen && (
+                    <div style={{ display: "none" }} className="print-only">
+                        <ExportSummary
+                            gameState={gameState}
+                            worldsMeta={WORLDS_META}
+                        />
+                    </div>
                 )}
 
                 <AboutPrograms
