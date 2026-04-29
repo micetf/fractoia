@@ -38,7 +38,7 @@ function NumberLine({
     targetValue = null,
 }) {
     const svgRef = useRef(null);
-    const dragging = useRef(false);
+    const [isDragging, setIsDragging] = useState(false);
     const [hoverX, setHoverX] = useState(null);
     const [focused, setFocused] = useState(false);
 
@@ -68,7 +68,7 @@ function NumberLine({
         (e) => {
             if (disabled) return;
             e.currentTarget.setPointerCapture(e.pointerId);
-            dragging.current = true;
+            setIsDragging(true);
             onChange?.(toSnapped(getSvgX(e.clientX)));
         },
         [disabled, onChange, toSnapped, getSvgX]
@@ -78,20 +78,20 @@ function NumberLine({
         (e) => {
             if (disabled) return;
             const sx = getSvgX(e.clientX);
-            if (dragging.current) onChange?.(toSnapped(sx));
+            if (isDragging) onChange?.(toSnapped(sx));
             else setHoverX(sx);
         },
-        [disabled, onChange, toSnapped, getSvgX]
+        [disabled, isDragging, onChange, toSnapped, getSvgX]
     );
 
     const handlePointerUp = useCallback((e) => {
-        dragging.current = false;
+        setIsDragging(false);
         e.currentTarget.releasePointerCapture?.(e.pointerId);
     }, []);
 
     const handlePointerLeave = useCallback(() => {
-        if (!dragging.current) setHoverX(null);
-    }, []);
+        if (!isDragging) setHoverX(null);
+    }, [isDragging]);
 
     // ── Navigation clavier ← → (Sprint G) ───────────────────────────
     const handleKeyDown = useCallback(
@@ -133,8 +133,7 @@ function NumberLine({
             : { ip, fn, d: denominator, num: Math.round(value * denominator) };
     })();
 
-    const ghostVal =
-        hoverX !== null && !dragging.current ? toSnapped(hoverX) : null;
+    const ghostVal = hoverX !== null && !isDragging ? toSnapped(hoverX) : null;
     const valueText =
         value !== null
             ? `${Math.round(value * denominator)} sur ${denominator}`

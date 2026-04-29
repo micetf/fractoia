@@ -214,7 +214,8 @@ function ExportSummary({ gameState, worldsMeta }) {
                         {gRate >= 80 && (
                             <li>
                                 Proposer des défis de comparaison à
-                                dénominateurs différents ou des fractions > 1.
+                                dénominateurs différents ou des fractions &gt;
+                                1.
                             </li>
                         )}
                         {worlds.some((w) =>

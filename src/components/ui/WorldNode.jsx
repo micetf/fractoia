@@ -22,7 +22,6 @@
 function WorldNode({
     emoji,
     label,
-    sub,
     unlocked = false,
     comingSoon = false,
     stars = 0,
