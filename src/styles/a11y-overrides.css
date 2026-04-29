@@ -1,0 +1,61 @@
+/*
+ * Surcharges d'accessibilité FRACTOÏA — Sprint G (WCAG 2.1 AA)
+ * Ciblées via data-a11y-* sur <html>, appliquées par AccessibilityMenu.
+ *
+ * Intégration : importer ce fichier dans main.jsx ou index.css
+ *   @import './a11y-overrides.css';
+ */
+
+/* ── Police Luciole ─────────────────────────────────────────────────
+   Télécharger depuis luciole.eu et placer dans public/fonts/Luciole/
+   ou utiliser @font-face dans ce fichier.
+   En attendant, on bascule sur une police système à espacement ouvert. */
+[data-a11y-luciole="true"] {
+    font-family: "Luciole", "Arial", "Helvetica Neue", sans-serif !important;
+    letter-spacing: 0.03em;
+    word-spacing: 0.06em;
+}
+[data-a11y-luciole="true"] * {
+    font-family: inherit !important;
+}
+
+/* ── Grande taille de texte (+20%) ─────────────────────────────────*/
+[data-a11y-large-text="true"] {
+    font-size: 120% !important;
+}
+[data-a11y-large-text="true"] p,
+[data-a11y-large-text="true"] span,
+[data-a11y-large-text="true"] button {
+    font-size: 1.2em;
+}
+
+/* ── Contraste élevé ────────────────────────────────────────────────
+   Fond très sombre, texte blanc, bordures accentuées.
+   Ne s'applique qu'aux éléments de contenu — pas au SVG.          */
+[data-a11y-high-contrast="true"] body {
+    background: #000 !important;
+    color: #fff !important;
+}
+[data-a11y-high-contrast="true"] [style*="background"] {
+    background: #111 !important;
+}
+[data-a11y-high-contrast="true"] [style*="color: #"] {
+    color: #fff !important;
+}
+[data-a11y-high-contrast="true"] button {
+    border: 2px solid #fff !important;
+    background: #000 !important;
+    color: #fff !important;
+}
+
+/* ── Focus-visible global ───────────────────────────────────────────
+   Annule le style focus par défaut des navigateurs et le remplace
+   par un ring uniforme et contrasté (≥ 3:1 requis par WCAG 2.4.11).*/
+:focus-visible {
+    outline: 3px solid #3b82f6;
+    outline-offset: 3px;
+    border-radius: 4px;
+}
+:focus:not(:focus-visible) {
+    outline: none;
+}

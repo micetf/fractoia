@@ -3,14 +3,14 @@ import DecompBubble from "./DecompBubble.jsx";
 
 /**
  * @typedef {Object} NumberLineProps
- * @property {number}      [min=0]               - Valeur minimale
- * @property {number}      [max=3]               - Valeur maximale
- * @property {number}      [denominator=4]       - Dénominateur des graduations
- * @property {number|null} [value=null]          - Fraction placée (null = aucune)
- * @property {function(number): void} [onChange] - Callback au clic
+ * @property {number}      [min=0]
+ * @property {number}      [max=3]
+ * @property {number}      [denominator=4]
+ * @property {number|null} [value=null]
+ * @property {function(number): void} [onChange]
  * @property {boolean}     [showDecomposition=true]
  * @property {boolean}     [disabled=false]
- * @property {number|null} [targetValue=null]    - Cible affichée en mode correction
+ * @property {number|null} [targetValue=null]
  */
 
 const VIEW_W = 600;
@@ -20,8 +20,11 @@ const PAD = 44;
 /**
  * Demi-droite graduée SVG interactive — pièce maîtresse de FRACTOÏA.
  *
- * La droite s'étend toujours jusqu'à `max`, rendant les fractions > 1
- * visibles dans la continuité des entiers sans rupture conceptuelle.
+ * Sprint G — accessibilité WCAG 2.1 AA :
+ *   - role="slider" + aria-valuemin/max/now/valuetext
+ *   - tabIndex={0} quand actif → focusable au clavier
+ *   - onKeyDown : ← recule d'un tick, → avance d'un tick
+ *   - focus-visible : outline visible (ring bleu)
  *
  * @param {NumberLineProps} props
  */
@@ -37,6 +40,7 @@ function NumberLine({
 }) {
     const svgRef = useRef(null);
     const [hoverX, setHoverX] = useState(null);
+    const [focused, setFocused] = useState(false);
 
     const toX = useCallback(
         (v) => PAD + ((v - min) / (max - min)) * (VIEW_W - 2 * PAD),
@@ -66,7 +70,29 @@ function NumberLine({
         if (!disabled) setHoverX(getSvgX(e.clientX));
     };
 
-    /* Graduations */
+    /** Navigation clavier — ← recule d'un tick, → avance d'un tick. */
+    const handleKeyDown = useCallback(
+        (e) => {
+            if (disabled) return;
+            if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+            e.preventDefault();
+            const step = 1 / denominator;
+            const cur = value ?? min;
+            const next =
+                e.key === "ArrowRight"
+                    ? Math.min(
+                          max,
+                          Math.round((cur + step) * denominator) / denominator
+                      )
+                    : Math.max(
+                          min,
+                          Math.round((cur - step) * denominator) / denominator
+                      );
+            onChange?.(next);
+        },
+        [disabled, value, min, max, denominator, onChange]
+    );
+
     const ticks = Array.from(
         { length: (max - min) * denominator + 1 },
         (_, i) => {
@@ -75,7 +101,6 @@ function NumberLine({
         }
     );
 
-    /* Décomposition bulle */
     const decomp = (() => {
         if (!showDecomposition || value === null || value <= 1) return null;
         const ip = Math.floor(value);
@@ -86,6 +111,10 @@ function NumberLine({
     })();
 
     const ghostVal = hoverX !== null ? toSnapped(hoverX) : null;
+    const valueText =
+        value !== null
+            ? `${Math.round(value * denominator)} sur ${denominator}`
+            : "non placé";
 
     return (
         <div className="w-full select-none">
@@ -96,13 +125,28 @@ function NumberLine({
                 onClick={handleClick}
                 onMouseMove={handleMove}
                 onMouseLeave={() => setHoverX(null)}
+                onFocus={() => setFocused(true)}
+                onBlur={() => setFocused(false)}
+                onKeyDown={handleKeyDown}
+                tabIndex={disabled ? -1 : 0}
                 role="slider"
                 aria-valuemin={min}
                 aria-valuemax={max}
                 aria-valuenow={value ?? min}
-                aria-label="Demi-droite graduée interactive — cliquez pour placer votre réponse"
+                aria-valuetext={valueText}
+                aria-label="Demi-droite graduée — utilise les flèches ← → pour déplacer"
+                aria-disabled={disabled}
+                style={
+                    focused && !disabled
+                        ? {
+                              outline: "3px solid #3b82f6",
+                              outlineOffset: "3px",
+                              borderRadius: "6px",
+                          }
+                        : {}
+                }
             >
-                {/* Bandes alternées par entier */}
+                {/* Bandes alternées */}
                 {Array.from({ length: max - min }, (_, i) => (
                     <rect
                         key={i}

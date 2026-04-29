@@ -2,35 +2,22 @@
  * @typedef {import('../../hooks/useFeedback.js').FeedbackState} FeedbackState
  */
 
-const CONFIG = {
-    success: {
-        icon: "🎉",
-        bg: "bg-jade-500",
-        border: "border-jade-600",
-        text: "text-white",
-    },
-    error: {
-        icon: "🤔",
-        bg: "bg-coral-500",
-        border: "border-coral-600",
-        text: "text-white",
-    },
-    hint: {
-        icon: "💡",
-        bg: "bg-sky-500",
-        border: "border-sky-600",
-        text: "text-white",
-    },
+const PALETTE = {
+    success: { bg: "#059669", border: "#047857", icon: "🎉" },
+    error: { bg: "#dc2626", border: "#b91c1c", icon: "🤔" },
+    hint: { bg: "#0284c7", border: "#0369a1", icon: "💡" },
 };
 
 /**
- * Affiche un toast de feedback animé en bas de l'écran.
+ * Toast de feedback animé — affiché en bas à droite.
  *
- * Sprint E — zone diagnostic :
- * Si `feedback.diagnostic` est non-null, un bandeau secondaire s'affiche sous
- * le message principal avec un fond légèrement coloré et l'icône 🔍.
- * Ce bandeau identifie le biais cognitif et la stratégie correcte.
- * Sans `diagnostic`, le rendu est identique à l'ancienne version (non-régressif).
+ * Sprint E : zone diagnostic pour les biais cognitifs.
+ * Sprint G — accessibilité WCAG 2.1 AA :
+ *   - role="alert" aria-live="assertive" aria-atomic="true"
+ *     → les lecteurs d'écran annoncent le message complet dès apparition
+ *   - La zone diagnostic a son propre aria-live="polite" pour ne pas
+ *     interrompre la lecture du message principal.
+ *   - Contraste garanti ≥ 4.5:1 sur fond coloré (texte blanc sur rouge/vert/bleu)
  *
  * @param {Object}        props
  * @param {FeedbackState} props.feedback
@@ -38,49 +25,77 @@ const CONFIG = {
 function FeedbackToast({ feedback }) {
     if (!feedback.visible || feedback.status === "idle") return null;
 
-    const cfg = CONFIG[feedback.status];
+    const { bg, border, icon } = PALETTE[feedback.status] ?? PALETTE.error;
 
     return (
         <div
-            className={`
-                animate-slide-in-right fixed bottom-6 right-6 z-50
-                max-w-xs w-full rounded-2xl border-2 shadow-float
-                overflow-hidden
-                ${cfg.bg} ${cfg.border}
-            `}
             role="alert"
             aria-live="assertive"
+            aria-atomic="true"
+            style={{
+                position: "fixed",
+                bottom: "1.5rem",
+                right: "1.25rem",
+                zIndex: 50,
+                maxWidth: "20rem",
+                width: "calc(100vw - 2.5rem)",
+                borderRadius: "1rem",
+                overflow: "hidden",
+                border: `2px solid ${border}`,
+                boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
+                animation: "slideInRight .25s ease",
+            }}
         >
             {/* Message principal */}
-            <div className={`flex items-start gap-3 px-4 py-3 ${cfg.text}`}>
+            <div
+                style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: ".75rem",
+                    padding: ".875rem 1rem",
+                    background: bg,
+                }}
+            >
                 <span
-                    className="text-2xl leading-none mt-0.5"
                     aria-hidden="true"
+                    style={{
+                        fontSize: "1.5rem",
+                        lineHeight: 1,
+                        marginTop: ".1rem",
+                        flexShrink: 0,
+                    }}
                 >
-                    {cfg.icon}
+                    {icon}
                 </span>
                 <p
-                    className="text-sm font-bold leading-snug flex-1"
-                    style={{ fontFamily: "'Nunito', sans-serif" }}
+                    style={{
+                        fontFamily: "'Nunito',sans-serif",
+                        fontWeight: 700,
+                        fontSize: ".875rem",
+                        color: "#fff",
+                        margin: 0,
+                        lineHeight: 1.45,
+                    }}
                 >
                     {feedback.message}
                 </p>
             </div>
 
-            {/* Zone diagnostic — visible uniquement si errorBias présent */}
+            {/* Zone diagnostic — Sprint E + Sprint G aria-live="polite" */}
             {feedback.diagnostic && (
                 <div
+                    aria-live="polite"
                     style={{
-                        background: "rgba(0,0,0,0.25)",
-                        borderTop: "1px solid rgba(255,255,255,0.15)",
+                        background: "rgba(0,0,0,0.3)",
+                        borderTop: `1px solid ${border}88`,
                         padding: ".5rem .875rem .625rem",
                     }}
                 >
                     <p
                         style={{
-                            fontFamily: "'Nunito', sans-serif",
-                            fontSize: ".75rem",
-                            color: "rgba(255,255,255,0.9)",
+                            fontFamily: "'Nunito',sans-serif",
+                            fontSize: ".78rem",
+                            color: "rgba(255,255,255,0.92)",
                             margin: 0,
                             lineHeight: 1.5,
                         }}

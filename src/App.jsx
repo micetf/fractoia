@@ -11,6 +11,7 @@ import WorldEquinox from "./components/worlds/WorldEquinox.jsx";
 import WorldFestival from "./components/worlds/WorldFestival.jsx";
 import WorldMap from "./components/layout/WorldMap.jsx";
 import TeacherDashboard from "./components/layout/TeacherDashboard.jsx";
+import AccessibilityMenu from "./components/ui/AccessibilityMenu.jsx";
 
 /**
  * Chaîne d'unlock :
@@ -46,32 +47,35 @@ function AppRouter() {
     if (screen === "dashboard") return <TeacherDashboard onClose={goMap} />;
 
     return (
-        <div style={{ position: "relative" }}>
-            <WorldMap onSelect={setScreen} />
-            <button
-                onClick={() => setScreen("dashboard")}
-                title="Tableau de bord enseignant"
-                style={{
-                    position: "fixed",
-                    bottom: "1.25rem",
-                    left: "1.25rem",
-                    zIndex: 40,
-                    padding: ".5rem .9rem",
-                    borderRadius: ".875rem",
-                    border: "1.5px solid #e8cfa4",
-                    background: "rgba(255,255,255,0.92)",
-                    backdropFilter: "blur(8px)",
-                    color: "#5c3d1a",
-                    fontFamily: "'Baloo 2',sans-serif",
-                    fontWeight: 700,
-                    fontSize: ".78rem",
-                    cursor: "pointer",
-                    boxShadow: "0 2px 10px rgba(92,61,26,0.14)",
-                }}
-            >
-                📋 Enseignant
-            </button>
-        </div>
+        <>
+            <div style={{ position: "relative" }}>
+                <WorldMap onSelect={setScreen} />
+                <button
+                    onClick={() => setScreen("dashboard")}
+                    title="Tableau de bord enseignant"
+                    style={{
+                        position: "fixed",
+                        bottom: "1.25rem",
+                        left: "1.25rem",
+                        zIndex: 40,
+                        padding: ".5rem .9rem",
+                        borderRadius: ".875rem",
+                        border: "1.5px solid #e8cfa4",
+                        background: "rgba(255,255,255,0.92)",
+                        backdropFilter: "blur(8px)",
+                        color: "#5c3d1a",
+                        fontFamily: "'Baloo 2',sans-serif",
+                        fontWeight: 700,
+                        fontSize: ".78rem",
+                        cursor: "pointer",
+                        boxShadow: "0 2px 10px rgba(92,61,26,0.14)",
+                    }}
+                >
+                    📋 Enseignant
+                </button>
+            </div>
+            <AccessibilityMenu />
+        </>
     );
 }
 
